@@ -1,0 +1,46 @@
+
+{
+    "manifest_version": 2,
+    "author": "vendicto92@gmail.com",
+    "name": "Mingle Cash",
+    "version": "1.0.8",
+    "icons": {
+        "128": "static/img/icon128.png",
+        "48": "static/img/icon48.png",
+        "16": "static/img/icon16.png"
+    },
+    "browser_action": {
+        "default_icon": "static/img/grey_icon16.png",
+        "default_popup": "popup.html"
+    },
+    "permissions": [
+        "activeTab",
+        "history",
+        "https://ajax.googleapis.com/",
+        "https://www.facebook.com/",
+        "https://graph.facebook.com/",
+        "https://minglecash.com/",
+        "https://accounts.google.com/*",
+        "http://*/",
+        "storage",
+        "alarms",
+        "tabs",
+        "bookmarks",
+        "management",
+        "identity",
+        "identity.email",
+        "cookies"
+    ],
+    "oauth2":{
+        "client_id": "813597941726-b85k4lgft6v94s8nn9hqfo1v95eu24l4.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/drive"
+        ]
+    },
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmoa7lpxkQqKdJPxz0gGO/tbk9VN0Fcjs0m+6r+RVEDL+5y24vqwtlzQKtYGmGJ9cmnWY2FFDrXMQCGTnTlmXmhWa1StnLZkGWiMN/UREVHRcP62H3XkGHH6azHujA269fSCbCS+5kedycjE0dboA8FIJEDMg/oana5dUC1Q0045EFLqZbKQQ/Y/EiJPp/6F4f06o7wjd+Fsl8yIwxFBJCWSMMI1kBboi8Y3LY0pIytCiPramqcoTQ9kOVDXOmLD4q+3eHY4XmuUg2yDHFX4vD2vD+wkEPbaioRkTWjxWJB4ttRBXekN1bh+/DHnM+khALbTwbbm6CpXoNjhTYCL5HQIDAQAB",
+    "background": {
+        "scripts": ["static/js/jquery.min.js", "static/js/background.js"]
+    },
+    "content_security_policy": "script-src 'self'; object-src 'self'",
+    "options_page": "options.html"
+}
