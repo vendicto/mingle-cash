@@ -1,9 +1,9 @@
 
-
-// var CALLBACK_URL = 'https://'+chrome.runtime.id+'.chromiumapp.org';
-// var AUTH_URL = 'https://github.com/login/oauth/authorize/?client_id='+120294378556060+'&redirect_uri='+CALLBACK_URL+'&scope=notifications';
 var redirectUri = chrome.identity.getRedirectURL("oauth2");
-var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?client_id='+120294378556060+'&redirect_uri='+redirectUri+'&response_type=token';
+var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?' +
+  'client_id='+120294378556060+'' +
+  '&redirect_uri='+redirectUri+'' +
+  '&response_type=token';
 var history_url = [];
 var current_url = '';
 var startAlarmTime,
@@ -270,7 +270,7 @@ chrome.runtime.onMessage.addListener(function (message){
 chrome.windows.getCurrent({
   populate: true
 }, function (window){
-  console.log('getCurrent windowId ', window.id)
+  console.log('getCurrent windowId ', window.id);
   window_id = window.id;
 });
 
@@ -278,17 +278,14 @@ chrome.browserAction.getBadgeText({}, function (result){
   // console.log('getBadgeText ', result)
   if(!!result) chrome.browserAction.setBadgeText({'text': ''});
 });
+
 function checkCookies(){
   chrome.cookies.get({url:'https://www.facebook.com', name:'c_user'}, function(cookie) {
-    if (cookie) {
-      // console.log('Sign-in cookie:', cookie);
-      loggedInFacebook = true;
-    } else {
-      // console.log('cookie', cookie)
-      loggedInFacebook = false;
-    }
+    console.log('Sign-in cookie:', cookie);
+    loggedInFacebook = !!cookie;
   });
 }
+
 checkCookies();
 chrome.cookies.onChanged.addListener(function(info) {
   // console.log("Cookie onChanged:" + JSON.stringify(info));
@@ -299,3 +296,4 @@ if(drop_counter){
   count = 0
 }
 checkLogIn();
+

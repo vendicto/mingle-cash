@@ -35,10 +35,3 @@ $(function() {
 
 var background = chrome.extension.getBackgroundPage();
 
-// chrome.runtime.onMessage.addListener(function(message) {
-//   console.log('test ', message.name);
-//   test = message.name;
-//   $('.no_logged_in').hide();
-//   $('.logged_in').show();
-// });
-
