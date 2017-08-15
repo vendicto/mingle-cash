@@ -7,6 +7,7 @@ var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?' +
 var history_url = [];
 var current_url = '';
 var startAlarmTime,
+  activeTime,
   auth_key,
   user_id,
   isFired = false,
@@ -131,8 +132,8 @@ function create_ads_tab(url) {
       focused: false
       // incognito, top, left, ...
     }, function (window) {
-      console.log('windows.create', window.id);
-      console.log('window_id', window_id);
+      // console.log('windows.create', window.id);
+      // console.log('window_id', window_id);
       if (window.id != window_id) chrome.windows.update(window_id , {focused: true});
     });
 
@@ -144,18 +145,18 @@ function create_ads_tab(url) {
 
 function createAlarm(){
   if(startAlarmTime){
-    startAlarmTime = new Date(startAlarmTime);
+    startAlarmTime = activeTime = new Date(startAlarmTime);
   } else {
-    startAlarmTime = new Date();
+    startAlarmTime = activeTime = new Date();
   }
-  console.log('createAlarm ', startAlarmTime);
+  // console.log('createAlarm ', startAlarmTime);
 
   isFired = false;
   chrome.alarms.create("myAlarm", {delayInMinutes: 3, periodInMinutes: 3} );
 }
 
 function firedAlarm() {
-  console.log('firedAlarm');
+  // console.log('firedAlarm');
   isFired = true;
   chrome.alarms.clear("myAlarm");
 }
@@ -177,7 +178,7 @@ function checkLogIn(){
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tab.windowId);
-  if(tab.windowId == window_id) startAlarmTime = new Date();
+  if(tab.windowId == window_id) activeTime = new Date();
   if(isFired && auth_key){
     createAlarm();
   }
@@ -185,7 +186,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
 
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
-  if(activeInfo.windowId == window_id) startAlarmTime = new Date();
+  if(activeInfo.windowId == window_id) activeTime = new Date();
   if(isFired && auth_key){
     createAlarm();
   }
@@ -193,12 +194,12 @@ chrome.tabs.onActivated.addListener(function (activeInfo){
 
 
 chrome.alarms.onAlarm.addListener(function() {
-  let checkTime = startAlarmTime.valueOf() + 5*60000; // +n min TODO need 10 min
-  updatedtime = new Date().valueOf();
+  // let checkTime = startAlarmTime.valueOf() + 5*60000;
+  // updatedtime = new Date().valueOf();
+  //
+  // console.log('onAlarm checkTime ',   new Date(checkTime) , 'updatedtime ', new Date(updatedtime) );
 
-  console.log('onAlarm checkTime ',   new Date(checkTime) , 'updatedtime ', new Date(updatedtime) );
-
-  if(checkTime < updatedtime){
+  if(startAlarmTime == activeTime){
     firedAlarm();
   } else {
     getAndSendUrls();
@@ -270,7 +271,7 @@ chrome.runtime.onMessage.addListener(function (message){
 chrome.windows.getCurrent({
   populate: true
 }, function (window){
-  console.log('getCurrent windowId ', window.id);
+  // console.log('getCurrent windowId ', window.id);
   window_id = window.id;
 });
 
