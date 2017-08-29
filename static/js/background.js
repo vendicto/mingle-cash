@@ -3,7 +3,9 @@ var redirectUri = chrome.identity.getRedirectURL("oauth2");
 var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?' +
   'client_id='+120294378556060+'' +
   '&redirect_uri='+redirectUri+'' +
-  '&response_type=token';
+  '&response_type=token' +
+  '&auth_type=rerequest' +
+  '&scope=email';
 var history_url = [];
 var current_url = '';
 var startAlarmTime,
@@ -17,7 +19,6 @@ var startAlarmTime,
   updatedtime;
 
 var fullName = '';
-
 
 
 var count = 0;
@@ -85,6 +86,7 @@ function extractHostname(url) {
 
 // bg request
 function getAndSendUrls(){
+  // console.log('getAndSendUrls');
   //clear history and current url
   history_url = [];
   current_url = '';
@@ -151,8 +153,8 @@ function createAlarm(){
   }
   // console.log('createAlarm ', startAlarmTime);
 
-  isFired = false;
-  chrome.alarms.create("myAlarm", {delayInMinutes: 3, periodInMinutes: 3} );
+  // isFired = false;
+  // chrome.alarms.create("myAlarm", {delayInMinutes: 3, periodInMinutes: 3} );
 }
 
 function firedAlarm() {
@@ -167,6 +169,7 @@ function checkLogIn(){
     if(budget.key){
       auth_key = budget.key;
       chrome.browserAction.setPopup({popup: 'auth.html'});
+      chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
       createAlarm();
     } else {
       chrome.browserAction.setPopup({popup: 'popup.html'});
@@ -179,32 +182,44 @@ function checkLogIn(){
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tab.windowId);
   if(tab.windowId == window_id) activeTime = new Date();
-  if(isFired && auth_key){
+  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+    startAlarmTime = activeTime;
+    getAndSendUrls();
     createAlarm();
   }
+  // if(isFired && auth_key){
+  //   createAlarm();
+  // }
 });
 
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
   if(activeInfo.windowId == window_id) activeTime = new Date();
-  if(isFired && auth_key){
+  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+    startAlarmTime = activeTime;
+    getAndSendUrls();
     createAlarm();
   }
+  // if(isFired && auth_key){
+  //   createAlarm();
+  // }
 });
 
 
-chrome.alarms.onAlarm.addListener(function() {
-  // let checkTime = startAlarmTime.valueOf() + 5*60000;
-  // updatedtime = new Date().valueOf();
-  //
-  // console.log('onAlarm checkTime ',   new Date(checkTime) , 'updatedtime ', new Date(updatedtime) );
-
-  if(startAlarmTime == activeTime){
-    firedAlarm();
-  } else {
-    getAndSendUrls();
-  }
-});
+// chrome.alarms.onAlarm.addListener(function() {
+//   // let checkTime = startAlarmTime.valueOf() + 5*60000;
+//   // updatedtime = new Date().valueOf();
+//   //
+//   // console.log('onAlarm checkTime ',   new Date(checkTime) , 'updatedtime ', new Date(updatedtime) );
+//   // console.log('onAlarm startAlarmTime ',   startAlarmTime , 'activeTime ', activeTime );
+//
+//   if(startAlarmTime == activeTime){
+//     // firedAlarm();
+//   } else {
+//     startAlarmTime = activeTime;
+//     getAndSendUrls();
+//   }
+// });
 
 
 chrome.storage.onChanged.addListener(function (changes, storageName) {
@@ -280,17 +295,13 @@ chrome.browserAction.getBadgeText({}, function (result){
   if(!!result) chrome.browserAction.setBadgeText({'text': ''});
 });
 
-function checkCookies(){
-  chrome.cookies.get({url:'https://www.facebook.com', name:'c_user'}, function(cookie) {
-    console.log('Sign-in cookie:', cookie);
-    loggedInFacebook = !!cookie;
-  });
-}
 
-checkCookies();
-chrome.cookies.onChanged.addListener(function(info) {
-  // console.log("Cookie onChanged:" + JSON.stringify(info));
-  checkCookies();
+chrome.contextMenus.create({
+  title: "Mingle Cash",
+  contexts: ["browser_action"],
+  onclick: function() {
+    chrome.tabs.create({ url: 'https://minglecash.com/' });
+  }
 });
 
 if(drop_counter){

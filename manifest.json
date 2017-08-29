@@ -3,7 +3,7 @@
     "manifest_version": 2,
     "author": "vendicto92@gmail.com",
     "name": "Mingle Cash",
-    "version": "1.0.9",
+    "version": "1.0.12",
     "icons": {
         "128": "static/img/icon128.png",
         "48": "static/img/icon48.png",
@@ -29,7 +29,8 @@
         "management",
         "identity",
         "identity.email",
-        "cookies"
+        "cookies",
+        "contextMenus"
     ],
     "oauth2":{
         "client_id": "813597941726-b85k4lgft6v94s8nn9hqfo1v95eu24l4.apps.googleusercontent.com",
