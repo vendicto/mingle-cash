@@ -1,0 +1,50 @@
+<div class="root-container">
+
+    <div class="login">
+        <img src="{{logo}}"/>
+
+        <p class="font-12">
+            {{#if MCLogin}}
+                Welcome back, {{MCLogin}} !<br/>
+                Connect your Facebook account and invite friends to MingleCash Facebook group to explode your referrals and earnings!<br/>
+            {{else}}
+                Use our extension and add your Facebook friends to our FB Group to explode your referrals and earnings!<br/>
+                Please login to extension in the same way you registered on <a href="https://minglecash.com" class="has-text-info">minglecash.com</a>
+            {{/if}}
+        </p>
+
+        <br/>
+
+        <img id="mcash-btn-login-with-fb" src="{{fbLogo}}">
+        <br/>
+        <br/>
+
+
+        {{#unless MCLogin}}
+
+            <div class="mcash-separator"><div>OR</div></div>
+
+            <br/>
+
+            <div class="mcash-error-placeholder"></div>
+            <form action="/">
+                <div class="field">
+                    <input id="mcash-email" name="email" class="login_email input is-info" type="email" placeholder="Email"/>
+                </div>
+                <div class="field">
+                    <input id="mcash-pass" name="password" class="login_password input is-info" type="password" placeholder="Password"/>
+                </div>
+                <a id="mcash-btn-login-with-mc" class="button is-success" type="submit">Login</a>
+            </form>
+
+        {{/unless}}
+
+        <br/>
+
+    </div>
+
+    <div class="font-12">For more info of the benefits of using this extension and how it works,
+        <a href="https://minglecash.com" class="has-text-info">click here</a>
+    </div>
+
+</div>

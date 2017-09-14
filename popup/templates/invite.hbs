@@ -1,0 +1,62 @@
+<div class="root-container">
+
+    <img src="{{logo}}"/>
+    <br/>
+
+    <article class="media">
+        <div class="media-left">
+            <figure class="image is-64x64">
+                <img src="{{imgsrc}}"/>
+            </figure>
+        </div>
+        <div class="media-content">
+            <div class="content">
+                <p>
+                    <strong id="mcash-invite-form-name">{{name}}</strong>
+                </p>
+            </div>
+        </div>
+    </article>
+
+    <br/>
+
+    <div class="field">
+        <div class="control">
+            <textarea class="textarea is-info font-12" id="mcash-text-invite" type="text" placeholder="Invite Message">{{text}}</textarea>
+        </div>
+
+        <br/>
+
+        <nav class="profile-nav">
+
+            <div class="control has-icons-left">
+                <div class="select is-small is-info">
+                    <select id="mcash-lang-select">
+                        <option selected>EN</option>
+                        <option>AR</option>
+                        <option>DE</option>
+                        <option>ES</option>
+                        <option>ET</option>
+                        <option>FR</option>
+                        <option>HE</option>
+                        <option>JA</option>
+                        <option>KO</option>
+                        <option>PT</option>
+                        <option>RU</option>
+                        <option>TR</option>
+                        <option>UR</option>
+                        <option>VI</option>
+                        <option>ZN</option>
+                    </select>
+                </div>
+                <span class="icon is-small is-left">
+                    <i class="fa fa-globe"></i>
+                </span>
+            </div>
+
+            <a class="button is-small" id="mcash-btn-invite-close">Close</a>
+            <a class="button is-info is-small" id="mcash-btn-invite" imgsrc="{{imgsrc}}" userName="{{name}}">Send Invite</a>
+        </nav>
+    </div>
+
+</div>

@@ -1,0 +1,30 @@
+<div class="root-container">
+    <div class="box">
+        <article class="media">
+            <div class="media-left">
+                <figure class="image is-64x64">
+                    {{img}}
+                </figure>
+            </div>
+            <div class="media-content">
+                <div class="content">
+                    <p>
+                        <strong>{{name}}</strong>
+                    </p>
+                </div>
+
+                {{#if isMember}}
+                    <div class="font-12">Already is a Member</div>
+                {{/if}}
+                {{#if not isMember}}
+                    <nav class="profile-nav">
+                        <a class="button is-small mcash-btn-hide" name="{{name}}">Hide</a>
+                        <a class="button is-info is-small mcash-btn-add" name="{{name}}" image_src="{{img}}">Add</a>
+                    </nav>
+                {{/if}}
+
+                </div>
+        </article>
+
+    </div>
+</div>
