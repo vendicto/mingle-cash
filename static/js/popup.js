@@ -11,9 +11,7 @@ $(function() {
             password: $('.login_password').val()
         };
         
-        chrome.runtime.sendMessage(obj, function(response){
-            // console.log('sendMessage form response ', response);
-        });
+        chrome.runtime.sendMessage(obj);
 
 
     });
