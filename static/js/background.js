@@ -296,13 +296,13 @@ chrome.browserAction.getBadgeText({}, function (result){
 });
 
 
-chrome.contextMenus.create({
-  title: "Mingle Cash",
-  contexts: ["browser_action"],
-  onclick: function() {
-    chrome.tabs.create({ url: 'https://minglecash.com/' });
-  }
-});
+// chrome.contextMenus.create({
+//   title: "Mingle Cash",
+//   contexts: ["browser_action"],
+//   onclick: function() {
+//     chrome.tabs.create({ url: 'https://minglecash.com/' });
+//   }
+// });
 
 if(drop_counter){
   count = 0

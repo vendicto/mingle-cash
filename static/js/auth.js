@@ -11,4 +11,5 @@ $(function() {
     $('.otherText').text('');
     $('.support_box').css('margin-top', 0);
   }
+  $('#sawAds').text('You have seen ' + background.count + ' ad(s) today');
 });
