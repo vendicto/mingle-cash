@@ -310,6 +310,8 @@ if(drop_counter){
 
 chrome.runtime.onInstalled.addListener((details) => {
   isInstall = details.reason === "install";
+  if(isInstall)
+    chrome.storage.sync.clear();
 })
 
 
