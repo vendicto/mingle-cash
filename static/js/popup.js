@@ -1,6 +1,5 @@
-
+var background = chrome.extension.getBackgroundPage();
 $(function() {
-
     $('form').on('submit',function(e){
         e.preventDefault();
         var email = $('.login_email').val();
@@ -27,9 +26,6 @@ $(function() {
     if(background.fullName.length > 1){
       $('#loggedIn').text('Logged in as ' + background.fullName).css('display', 'block');
     }
-
 });
 
-
-var background = chrome.extension.getBackgroundPage();
 

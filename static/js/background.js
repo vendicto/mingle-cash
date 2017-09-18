@@ -15,8 +15,8 @@ var startAlarmTime,
   isFired = false,
   window_id = '',
   drop_counter = false,
-  loggedInFacebook = false,
-  updatedtime;
+  isInstall = false,
+  browserActionsClicks = 0;
 
 var fullName = '';
 
@@ -307,5 +307,11 @@ chrome.contextMenus.create({
 if(drop_counter){
   count = 0
 }
+
+chrome.runtime.onInstalled.addListener((details) => {
+  isInstall = details.reason === "install";
+})
+
+
 checkLogIn();
 
