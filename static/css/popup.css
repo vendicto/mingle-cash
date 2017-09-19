@@ -38,7 +38,8 @@
       .login_content #google_btn .google_box img, .login_content #google_btn .fb_box img, .login_content #fb_btn .google_box img, .login_content #fb_btn .fb_box img {
         width: 100%; }
   .login_content #google_btn {
-    background: #4285f4; }
+    background: #4285f4;
+    margin-top: 10px; }
     .login_content #google_btn:before {
       background-image: url(../img/google-favicon.png);
       background-size: 30px; }

@@ -182,7 +182,7 @@ function checkLogIn(){
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tab.windowId);
   if(tab.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(startAlarmTime && startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
@@ -195,7 +195,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
   if(activeInfo.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(startAlarmTime && startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
