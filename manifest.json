@@ -21,7 +21,7 @@
         "https://graph.facebook.com/",
         "https://minglecash.com/",
         "https://accounts.google.com/*",
-        "http://*/",
+        "http://*/*",
         "storage",
         "tabs",
         "bookmarks",

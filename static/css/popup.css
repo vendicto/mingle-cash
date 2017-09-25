@@ -39,7 +39,8 @@
         width: 100%; }
   .login_content #google_btn {
     background: #4285f4;
-    margin-top: 10px; }
+    margin-top: 10px;
+    text-decoration: none; }
     .login_content #google_btn:before {
       background-image: url(../img/google-favicon.png);
       background-size: 30px; }

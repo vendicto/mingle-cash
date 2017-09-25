@@ -16,7 +16,7 @@ var startAlarmTime,
   window_id = '',
   drop_counter = false,
   isInstall = false,
-  browserActionsClicks = 0;
+  googleClick = false;
 
 var fullName = '';
 
@@ -32,7 +32,6 @@ function sendAuth(type, url, data){
     data: data,
     dataType: "json",
     success: function (response) {
-      // console.log('response', response);
       let newkey = response.key;
       $.ajax({
         type: 'GET',
@@ -181,8 +180,9 @@ function checkLogIn(){
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tab.windowId);
+  if(googleClick) checkCookies();
   if(tab.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime && startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
@@ -194,8 +194,9 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
 
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
+  if(googleClick) checkCookies();
   if(activeInfo.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime && startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
@@ -238,22 +239,20 @@ chrome.runtime.onMessage.addListener(function (message){
       });
       break;
     case 'google_btn':
-      chrome.identity.getAuthToken({
-        interactive: true
-      }, function(token) {
-        if (chrome.runtime.lastError) {
-          alert(chrome.runtime.lastError.message);
-        } else {
-          if(token){
-            chrome.identity.getProfileUserInfo(function (email, id) {
-              // console.log(email, id);
-            });
-            sendAuth("POST", "https://minglecash.com/api/v1/rest-auth/google/", {
-              access_token: token
-            });
-          }
-        }
-      });
+      googleClick = true;
+      // chrome.identity.getAuthToken({
+      //   interactive: true
+      // }, function(token) {
+      //   if (chrome.runtime.lastError) {
+      //     alert(chrome.runtime.lastError.message);
+      //   } else {
+      //     if(token){
+      //       chrome.identity.getProfileUserInfo(function (email, id) {
+      //         // console.log(email, id);
+      //       });
+      //     }
+      //   }
+      // });
       break;
     case 'fb_btn':
       chrome.identity.launchWebAuthFlow({
@@ -303,6 +302,18 @@ chrome.browserAction.getBadgeText({}, function (result){
 //     chrome.tabs.create({ url: 'https://minglecash.com/' });
 //   }
 // });
+
+function checkCookies(){
+  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
+    console.log('Sign-in cookie:', cookie.value);
+    if(cookie.value)
+      sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
+        sessionid: cookie.value
+      });
+  });
+}
+
+checkCookies();
 
 if(drop_counter){
   count = 0
