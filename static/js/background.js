@@ -16,7 +16,8 @@ var startAlarmTime,
   window_id = '',
   drop_counter = false,
   isInstall = false,
-  googleClick = false;
+  googleClick = false
+  isCoockies = false;
 
 var fullName = '';
 
@@ -164,6 +165,7 @@ function firedAlarm() {
 
 
 function checkLogIn(){
+
   chrome.storage.sync.get('key', function(budget){
     if(budget.key){
       auth_key = budget.key;
@@ -304,9 +306,11 @@ chrome.browserAction.getBadgeText({}, function (result){
 // });
 
 function checkCookies(){
+  if(isCoockies)return;
   chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
     console.log('Sign-in cookie:', cookie.value);
     if(cookie.value)
+      isCoockies = true;
       sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
         sessionid: cookie.value
       });
