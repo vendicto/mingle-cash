@@ -16,7 +16,7 @@ var startAlarmTime,
   window_id = '',
   drop_counter = false,
   isInstall = false,
-  googleClick = false
+  googleClick = false,
   isCoockies = false;
 
 var fullName = '';
@@ -151,10 +151,6 @@ function createAlarm(){
   } else {
     startAlarmTime = activeTime = new Date();
   }
-  // console.log('createAlarm ', startAlarmTime);
-
-  // isFired = false;
-  // chrome.alarms.create("myAlarm", {delayInMinutes: 3, periodInMinutes: 3} );
 }
 
 function firedAlarm() {
@@ -166,23 +162,31 @@ function firedAlarm() {
 
 function checkLogIn(){
 
-  chrome.storage.sync.get('key', function(budget){
+  chrome.storage.sync.get(['key', 'cookie'], function(budget){
+    // console.log('budget', budget, budget.key);
     if(budget.key){
+      // console.log('budget key ', budget.key);
       auth_key = budget.key;
       chrome.browserAction.setPopup({popup: 'auth.html'});
       chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
       createAlarm();
+    } else if(!budget.key && budget.cookie){
+      // console.log('budget cookie ', budget.cookie);
+      sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
+        sessionid: budget.cookie
+      });
     } else {
+      console.log('clear ');
+      chrome.storage.sync.clear();
       chrome.browserAction.setPopup({popup: 'popup.html'});
-      // firedAlarm();
     }
   });
 }
 
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
-  // console.log('onUpdated windowId', tab.windowId);
-  if(googleClick) checkCookies();
+  // console.log('onUpdated windowId', tabId, changeInfo, tab);
+  checkCookies();
   if(tab.windowId == window_id) activeTime = new Date();
   if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
@@ -196,7 +200,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
 
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
-  if(googleClick) checkCookies();
+  checkCookies();
   if(activeInfo.windowId == window_id) activeTime = new Date();
   if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
     startAlarmTime = activeTime;
@@ -242,19 +246,6 @@ chrome.runtime.onMessage.addListener(function (message){
       break;
     case 'google_btn':
       googleClick = true;
-      // chrome.identity.getAuthToken({
-      //   interactive: true
-      // }, function(token) {
-      //   if (chrome.runtime.lastError) {
-      //     alert(chrome.runtime.lastError.message);
-      //   } else {
-      //     if(token){
-      //       chrome.identity.getProfileUserInfo(function (email, id) {
-      //         // console.log(email, id);
-      //       });
-      //     }
-      //   }
-      // });
       break;
     case 'fb_btn':
       chrome.identity.launchWebAuthFlow({
@@ -306,18 +297,19 @@ chrome.browserAction.getBadgeText({}, function (result){
 // });
 
 function checkCookies(){
-  if(isCoockies)return;
-  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
-    console.log('Sign-in cookie:', cookie.value);
-    if(cookie.value)
-      isCoockies = true;
-      sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
-        sessionid: cookie.value
-      });
-  });
-}
 
-checkCookies();
+  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
+    console.log('Sign-in cookie:', cookie);
+    chrome.storage.sync.get('cookie', function(budget){
+      if(budget.cookie != cookie.value){
+        chrome.storage.sync.set({
+          'cookie': cookie.value
+        });
+      }
+    });
+  });
+
+}
 
 if(drop_counter){
   count = 0

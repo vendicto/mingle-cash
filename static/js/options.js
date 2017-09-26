@@ -6,6 +6,7 @@ $(function () {
 
 function logOut(){
     chrome.storage.sync.clear();
+    isCoockies = false;
     $.ajax({
         type: "POST",
         url: "https://minglecash.com/api/v1/rest-auth/logout/",
