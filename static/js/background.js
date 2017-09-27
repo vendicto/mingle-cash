@@ -17,7 +17,8 @@ var startAlarmTime,
   drop_counter = false,
   isInstall = false,
   googleClick = false,
-  isCoockies = false;
+  isCoockies = false,
+  browserActionsClicks = 0;
 
 var fullName = '';
 
