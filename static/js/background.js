@@ -50,7 +50,7 @@ function sendAuth(type, url, data){
           }, function () {
             user_id = response.user_id;
             auth_key = newkey;
-            fullName = response.first_name + ' ' + response.last_name;
+            fullName = response.email? response.email: response.first_name + ' ' + response.last_name;
             chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
             chrome.runtime.sendMessage({done: true});
             chrome.extension.getViews({type: "popup"}).forEach(function(win) {
