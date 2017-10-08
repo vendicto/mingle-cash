@@ -125,25 +125,26 @@ function getAndSendUrls(){
 
 function create_ads_tab(url) {
 
-  chrome.tabs.create({
-    url: url,
-    active: false
-  }, function(tab) {
-    chrome.windows.create({
-      tabId: tab.id,
-      type: 'popup',
-      focused: false
-      // incognito, top, left, ...
-    }, function (window) {
-      // console.log('windows.create', window.id);
-      // console.log('window_id', window_id);
-      if (window.id != window_id) chrome.windows.update(window_id , {focused: true});
-    });
+    chrome.windows.get(1, mainWindow => {
+        chrome.tabs.create({
+            url: url,
+            active: false
+        }, function (tab) {
+            chrome.windows.create({
+                tabId: tab.id,
+                type: 'popup',
+                focused: false,
+                height: mainWindow.height,
+                width: mainWindow.width,
+                top: mainWindow.top,
+                left: mainWindow.left
+            }, function (window) {
+                if (window.id != window_id) chrome.windows.update(window_id, {focused: true});
+            });
 
-    chrome.browserAction.setBadgeText({'text': String(++count)});
-
-
-  });
+            chrome.browserAction.setBadgeText({'text': String(++count)});
+        });
+    })
 }
 
 function createAlarm(){
