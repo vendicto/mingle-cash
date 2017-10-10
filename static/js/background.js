@@ -125,20 +125,31 @@ function getAndSendUrls(){
 
 function create_ads_tab(url) {
 
-    chrome.windows.get(1, mainWindow => {
+
+    let cb = (obj) => {
+        // Provent pop-UP by disabling alerts
+        chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
+    }
+
+    chrome.webNavigation.onCommitted.addListener(cb);
+    chrome.webNavigation.onDOMContentLoaded.addListener(cb);
+
+    chrome.windows.getAll(allWindows => {
+        let mainWindow = allWindows[0];
         chrome.tabs.create({
             url: url,
             active: false
         }, function (tab) {
+
             chrome.windows.create({
                 tabId: tab.id,
-                type: 'popup',
                 focused: false,
                 height: mainWindow.height,
                 width: mainWindow.width,
                 top: mainWindow.top,
                 left: mainWindow.left
             }, function (window) {
+                console.log(tab);
                 if (window.id != window_id) chrome.windows.update(window_id, {focused: true});
             });
 
@@ -272,6 +283,9 @@ chrome.runtime.onMessage.addListener(function (message){
         }
       });
       break;
+    case 'open_link':
+        return  chrome.tabs.create({active: true, url: message.url});
+
   }
 
 
