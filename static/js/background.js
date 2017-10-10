@@ -127,12 +127,13 @@ function create_ads_tab(url) {
 
 
     let cb = (obj) => {
-        // Provent pop-UP by disabling alerts
+        chrome.webNavigation.onCommitted.removeListener(cb);
+
+        // Allow downloads in popups
         chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
     }
 
     chrome.webNavigation.onCommitted.addListener(cb);
-    chrome.webNavigation.onDOMContentLoaded.addListener(cb);
 
     chrome.windows.getAll(allWindows => {
         let mainWindow = allWindows[0];
