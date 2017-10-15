@@ -50,7 +50,7 @@ function loadUserData(newkey, data) {
         headers: {
             'Authorization' : `Token ${newkey}`
         },
-        url: 'http://127.0.0.1:8000/api/v1/user/',
+        url: 'https://minglecash.com/api/v1/user/',
         data: data || {},
         dataType: "json",
         success: function (response) {
@@ -119,7 +119,7 @@ function getAndSendUrls(){
         headers: {
           'Authorization' : `Token ${auth_key}`
         },
-        url: "http://127.0.0.1:8000/api/v1/category-ads/",
+        url: "https://minglecash.com/api/v1/category-ads/",
         data: {url: current_url, history: history_url, user_id: user_id, time: current_time.toDateString()},
         dataType: "json",
         success: function (data) {
@@ -201,7 +201,7 @@ function checkLogIn(){
       loadUserData(auth_key)
     } else if(!budget.key && budget.cookie){
       // console.log('budget cookie ', budget.cookie);
-      sendAuth("POST", "http://127.0.0.1:8000/api/v1/user-by-session/", {
+      sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
         sessionid: budget.cookie
       });
     } else {
@@ -245,7 +245,7 @@ chrome.runtime.onMessage.addListener(function (message){
 
   switch(message.todo){
     case 'standart_login':
-      sendAuth("POST", "http://127.0.0.1:8000/api/v1/authenticate/", {
+      sendAuth("POST", "https://minglecash.com/api/v1/authenticate/", {
         username: message.username,
         email: message.email,
         password: message.password
@@ -269,7 +269,7 @@ chrome.runtime.onMessage.addListener(function (message){
             var kv = parts[i].split('=');
             if (kv[0] == 'access_token') {
               var token = kv[1];
-              sendAuth("POST", "http://127.0.0.1:8000/api/v1/rest-auth/facebook/", {
+              sendAuth("POST", "https://minglecash.com/api/v1/rest-auth/facebook/", {
                 access_token: token
               });
             }
@@ -302,13 +302,13 @@ chrome.browserAction.getBadgeText({}, function (result){
 //   title: "Mingle Cash",
 //   contexts: ["browser_action"],
 //   onclick: function() {
-//     chrome.tabs.create({ url: 'http://127.0.0.1:8000/' });
+//     chrome.tabs.create({ url: 'https://minglecash.com/' });
 //   }
 // });
 
 function checkCookies(){
 
-  chrome.cookies.get({url:'http://127.0.0.1:8000', name:'sessionid'}, function(cookie) {
+  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
     console.log('Sign-in cookie:', cookie);
     chrome.storage.sync.get('cookie', function(budget){
       if(cookie && (budget.cookie != cookie.value)){
