@@ -112,4 +112,10 @@
   color: #9bc34d;
   display: none; }
 
+#userIsConfirmed {
+  color: red;
+  margin: 20px 0; }
+  #userIsConfirmed a {
+    text-decoration: none; }
+
 /*# sourceMappingURL=popup.css.map */

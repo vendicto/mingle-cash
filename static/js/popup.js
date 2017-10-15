@@ -26,6 +26,8 @@ $(function() {
     if(background.fullName.length > 1){
       $('#loggedIn').text('Logged in as ' + background.fullName).css('display', 'block');
     }
+
+    $('#userIsConfirmed').css('display', background.userIsConfirmed ? 'none' : 'block')
 });
 
 

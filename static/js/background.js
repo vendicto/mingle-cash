@@ -22,12 +22,13 @@ var startAlarmTime,
 
 var fullName = '';
 
-
 var count = 0;
+var userIsConfirmed = true;
 
 
 // fnc for send auth and get key
 function sendAuth(type, url, data){
+  console.log('[Send Auth]');
   $.ajax({
     type: type,
     url: url,
@@ -35,36 +36,46 @@ function sendAuth(type, url, data){
     dataType: "json",
     success: function (response) {
       let newkey = response.key;
-      $.ajax({
-        type: 'GET',
-        headers: {
-          'Authorization' : `Token ${newkey}`
-        },
-        url: 'https://minglecash.com/api/v1/user/',
-        data: data,
-        dataType: "json",
-        success: function (response) {
-          chrome.storage.sync.set({
-            'key': newkey,
-            'user_id': response.user_id
-          }, function () {
-            user_id = response.user_id;
-            auth_key = newkey;
-            fullName = response.email? response.email: response.first_name + ' ' + response.last_name;
-            chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
-            chrome.runtime.sendMessage({done: true});
-            chrome.extension.getViews({type: "popup"}).forEach(function(win) {
-              if(win != window) win.close();
-            });
-          });
-        }
-      });
+      loadUserData(newkey, data)
     },
     error: function (err) {
       alert(err.responseText.split(':')[0].replace(/[^\w\s]/gi, '') + ': ' + err.responseText.split(':')[1].replace(/[^\w\s]/gi, ''));
     }
   });
 }
+
+function loadUserData(newkey, data) {
+    $.ajax({
+        type: 'GET',
+        headers: {
+            'Authorization' : `Token ${newkey}`
+        },
+        url: 'http://127.0.0.1:8000/api/v1/user/',
+        data: data || {},
+        dataType: "json",
+        success: function (response) {
+            user_id = response.user_id;
+            fullName = response.email? response.email: response.first_name + ' ' + response.last_name;
+            count = response.ads_seen_today;
+            userIsConfirmed = response.is_confirmed;
+
+            console.log('[Auth] ', response)
+            chrome.storage.sync.set({
+                'key': newkey,
+                'user_id': user_id,
+                'fullName': fullName
+            }, function () {
+                auth_key = newkey;
+                chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
+                chrome.runtime.sendMessage({done: true});
+                chrome.extension.getViews({type: "popup"}).forEach(function(win) {
+                    if(win != window) win.close();
+                });
+            });
+        }
+    });
+}
+
 // get hostname by url
 function extractHostname(url) {
   var hostname;
@@ -108,12 +119,13 @@ function getAndSendUrls(){
         headers: {
           'Authorization' : `Token ${auth_key}`
         },
-        url: "https://minglecash.com/api/v1/category-ads/",
+        url: "http://127.0.0.1:8000/api/v1/category-ads/",
         data: {url: current_url, history: history_url, user_id: user_id, time: current_time.toDateString()},
         dataType: "json",
         success: function (data) {
           drop_counter = data.drop_counter;
           if(data.drop_counter) count = 0;
+          count = data.ads_seen_today;
           // create_ads_tab('https://www.google.com.ua/');
           create_ads_tab(data.max_category);
         }
@@ -175,18 +187,21 @@ function firedAlarm() {
 
 
 function checkLogIn(){
+  console.log('[Check Login]');
 
-  chrome.storage.sync.get(['key', 'cookie'], function(budget){
-    // console.log('budget', budget, budget.key);
+  chrome.storage.sync.get(['key', 'cookie', 'fullName'], function(budget){
+    console.log('[Check Login] budget ', budget);
     if(budget.key){
       // console.log('budget key ', budget.key);
       auth_key = budget.key;
+      fullName = budget.fullName;
       chrome.browserAction.setPopup({popup: 'auth.html'});
       chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
       createAlarm();
+      loadUserData(auth_key)
     } else if(!budget.key && budget.cookie){
       // console.log('budget cookie ', budget.cookie);
-      sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
+      sendAuth("POST", "http://127.0.0.1:8000/api/v1/user-by-session/", {
         sessionid: budget.cookie
       });
     } else {
@@ -202,45 +217,23 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tabId, changeInfo, tab);
   checkCookies();
   if(tab.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
   }
-  // if(isFired && auth_key){
-  //   createAlarm();
-  // }
 });
 
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
   checkCookies();
   if(activeInfo.windowId == window_id) activeTime = new Date();
-  if(startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf()){
+  if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
     startAlarmTime = activeTime;
     getAndSendUrls();
     createAlarm();
   }
-  // if(isFired && auth_key){
-  //   createAlarm();
-  // }
 });
-
-
-// chrome.alarms.onAlarm.addListener(function() {
-//   // let checkTime = startAlarmTime.valueOf() + 5*60000;
-//   // updatedtime = new Date().valueOf();
-//   //
-//   // console.log('onAlarm checkTime ',   new Date(checkTime) , 'updatedtime ', new Date(updatedtime) );
-//   // console.log('onAlarm startAlarmTime ',   startAlarmTime , 'activeTime ', activeTime );
-//
-//   if(startAlarmTime == activeTime){
-//     // firedAlarm();
-//   } else {
-//     startAlarmTime = activeTime;
-//     getAndSendUrls();
-//   }
-// });
 
 
 chrome.storage.onChanged.addListener(function (changes, storageName) {
@@ -252,7 +245,7 @@ chrome.runtime.onMessage.addListener(function (message){
 
   switch(message.todo){
     case 'standart_login':
-      sendAuth("POST", "https://minglecash.com/api/v1/authenticate/", {
+      sendAuth("POST", "http://127.0.0.1:8000/api/v1/authenticate/", {
         username: message.username,
         email: message.email,
         password: message.password
@@ -276,7 +269,7 @@ chrome.runtime.onMessage.addListener(function (message){
             var kv = parts[i].split('=');
             if (kv[0] == 'access_token') {
               var token = kv[1];
-              sendAuth("POST", "https://minglecash.com/api/v1/rest-auth/facebook/", {
+              sendAuth("POST", "http://127.0.0.1:8000/api/v1/rest-auth/facebook/", {
                 access_token: token
               });
             }
@@ -309,16 +302,16 @@ chrome.browserAction.getBadgeText({}, function (result){
 //   title: "Mingle Cash",
 //   contexts: ["browser_action"],
 //   onclick: function() {
-//     chrome.tabs.create({ url: 'https://minglecash.com/' });
+//     chrome.tabs.create({ url: 'http://127.0.0.1:8000/' });
 //   }
 // });
 
 function checkCookies(){
 
-  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
+  chrome.cookies.get({url:'http://127.0.0.1:8000', name:'sessionid'}, function(cookie) {
     console.log('Sign-in cookie:', cookie);
     chrome.storage.sync.get('cookie', function(budget){
-      if(budget.cookie != cookie.value){
+      if(cookie && (budget.cookie != cookie.value)){
         chrome.storage.sync.set({
           'cookie': cookie.value
         });
@@ -337,7 +330,6 @@ chrome.runtime.onInstalled.addListener((details) => {
   if(isInstall)
     chrome.storage.sync.clear();
 })
-
 
 checkLogIn();
 
