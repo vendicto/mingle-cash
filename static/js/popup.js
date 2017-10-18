@@ -1,6 +1,10 @@
 var background = chrome.extension.getBackgroundPage();
 $(function() {
+    console.log('[POPUP - INIT]');
+
     $('form').on('submit',function(e){
+        console.log('[POPUP - SUBMIT]');
+
         e.preventDefault();
         var email = $('.login_email').val();
         var obj = {
@@ -15,6 +19,8 @@ $(function() {
 
     });
     $('#google_btn, #fb_btn').click(function(e){
+        console.log('[POPUP - G+/FB]');
+
         chrome.runtime.sendMessage({
             todo: e.target.id
         }, function(response){
@@ -28,6 +34,8 @@ $(function() {
     }
 
     $('#userIsConfirmed').css('display', background.userIsConfirmed ? 'none' : 'block')
+
+    console.log('[POPUP - INITIALIZED]');
 });
 
 

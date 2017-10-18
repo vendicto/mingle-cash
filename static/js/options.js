@@ -1,3 +1,5 @@
+console.log('[OPTIONS - INIT]');
+
 $(function () {
     $('#logout_btn').click(function () {
         logOut();
@@ -5,6 +7,8 @@ $(function () {
 });
 
 function logOut(){
+    console.log('[OPTIONS - LOGOUT]');
+
     chrome.storage.sync.clear();
     isCoockies = false;
     $.ajax({
@@ -19,6 +23,8 @@ function logOut(){
     firedAlarm();
 }
 function remove_token() {
+    console.log('[OPTIONS - remove_token]');
+
     chrome.identity.getAuthToken({ 'interactive': false },
         function(current_token) {
             // console.log('current_token ', current_token);
@@ -51,6 +57,8 @@ function remove_token() {
 }
 // callback = function (error, httpStatus, responseText);
 function authenticatedXhr(method, url, callback) {
+    console.log('[OPTIONS - authenticatedXhr]');
+
     var retry = true;
     function getTokenAndXhr() {
         chrome.identity.getAuthToken({interactive: true},

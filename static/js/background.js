@@ -25,10 +25,16 @@ var fullName = '';
 var count = 0;
 var userIsConfirmed = true;
 
+// const SERVER_URL = 'https://minglecash.com';
+const SERVER_URL = 'http://127.0.0.1:8000';
+const PING_INTERVAL = 60 * 1000;
+
+
+console.log('[INIT APP]');
 
 // fnc for send auth and get key
 function sendAuth(type, url, data){
-  console.log('[Send Auth]');
+  console.log('[Send Auth]', type, url, data);
   $.ajax({
     type: type,
     url: url,
@@ -45,6 +51,7 @@ function sendAuth(type, url, data){
 }
 
 function loadUserData(newkey, data) {
+    console.log('[LOAD USER DATA]', newkey, data);
     $.ajax({
         type: 'GET',
         headers: {
@@ -98,7 +105,8 @@ function extractHostname(url) {
 
 // bg request
 function getAndSendUrls(){
-  // console.log('getAndSendUrls');
+    console.log('[CATEGORY ADS]');
+    // console.log('getAndSendUrls');
   //clear history and current url
   history_url = [];
   current_url = '';
@@ -107,10 +115,12 @@ function getAndSendUrls(){
   chrome.history.search({text: '', maxResults: 20}, function(data) {
     data.forEach(function(page) {
       history_url.push(extractHostname(page.url));
-    });
-    //get current url
+    })
+    console.log('[CATEGORY ADS]', history_url);
+      //get current url
     chrome.tabs.getSelected(null, function(tab) {
       current_url = tab.url;
+      console.log('[CATEGORY ADS]', current_url);
 
       let current_time = new Date();
       // console.log('getAndSendUrls auth_key ', auth_key);
@@ -136,7 +146,7 @@ function getAndSendUrls(){
 }
 
 function create_ads_tab(url) {
-
+    console.log('[CREATE ADS TAB]', url);
 
     let cb = (obj) => {
         chrome.webNavigation.onCommitted.removeListener(cb);
@@ -166,7 +176,7 @@ function create_ads_tab(url) {
                 if (window.id != window_id) chrome.windows.update(window_id, {focused: true});
             });
 
-            chrome.browserAction.setBadgeText({'text': String(++count)});
+            chrome.browserAction.setBadgeText({'text': String(count)});
         });
     })
 }
@@ -177,9 +187,11 @@ function createAlarm(){
   } else {
     startAlarmTime = activeTime = new Date();
   }
+    console.log('[CREATE ALARM]', startAlarmTime);
 }
 
 function firedAlarm() {
+    console.log('[FIRED ALARM]', startAlarmTime);
   // console.log('firedAlarm');
   isFired = true;
   chrome.alarms.clear("myAlarm");
@@ -187,10 +199,8 @@ function firedAlarm() {
 
 
 function checkLogIn(){
-  console.log('[Check Login]');
-
   chrome.storage.sync.get(['key', 'cookie', 'fullName'], function(budget){
-    console.log('[Check Login] budget ', budget);
+    console.log('[CHECK LOGIN] budget ', budget);
     if(budget.key){
       // console.log('budget key ', budget.key);
       auth_key = budget.key;
@@ -205,7 +215,7 @@ function checkLogIn(){
         sessionid: budget.cookie
       });
     } else {
-      console.log('clear ');
+      console.log('[CHECK LOGIN] - CLEAR');
       chrome.storage.sync.clear();
       chrome.browserAction.setPopup({popup: 'popup.html'});
     }
@@ -237,11 +247,13 @@ chrome.tabs.onActivated.addListener(function (activeInfo){
 
 
 chrome.storage.onChanged.addListener(function (changes, storageName) {
+  console.log('[STORAGE CHANGED] budget ', changes, storageName);
   // console.log('storage onChanged ', changes, storageName);
   checkLogIn();
 });
 
 chrome.runtime.onMessage.addListener(function (message){
+    console.log('[MESSAGE] ', message);
 
   switch(message.todo){
     case 'standart_login':
@@ -288,7 +300,7 @@ chrome.runtime.onMessage.addListener(function (message){
 chrome.windows.getCurrent({
   populate: true
 }, function (window){
-  // console.log('getCurrent windowId ', window.id);
+  console.log('[GET CURRENT WINDOW] ', window.id);
   window_id = window.id;
 });
 
@@ -307,9 +319,8 @@ chrome.browserAction.getBadgeText({}, function (result){
 // });
 
 function checkCookies(){
-
   chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
-    console.log('Sign-in cookie:', cookie);
+    console.log('[COOKIES]', cookie);
     chrome.storage.sync.get('cookie', function(budget){
       if(cookie && (budget.cookie != cookie.value)){
         chrome.storage.sync.set({
@@ -326,10 +337,43 @@ if(drop_counter){
 }
 
 chrome.runtime.onInstalled.addListener((details) => {
-  isInstall = details.reason === "install";
-  if(isInstall)
-    chrome.storage.sync.clear();
-})
+    console.log('[INSTALLED]', details);
+    isInstall = details.reason === "install";
+    if (isInstall){
+        chrome.storage.sync.clear();
+    }
+});
 
+
+/**
+ * PING Server each PING_INTERVAL
+ */
+const ping = () => {
+    chrome.storage.sync.get(['key', 'cookie', 'fullName'], budget =>
+        chrome.management.getSelf(extension =>
+            fetch(SERVER_URL + '/api/v1/app/ping/', {
+                method: 'POST',
+                headers: {'Authorization': `Token ${auth_key || budget.key}`},
+                body: JSON.stringify({
+                    app: extension.shortName,
+                    version: extension.version,
+                    data: {
+                        auth_key: auth_key || budget.key,
+                        user_id,
+                        startAlarmTime,
+                        activeTime,
+                        drop_counter
+                    }
+                })
+            })
+                .then(r => r.text())
+                .then(r => console.log('[PING]', r))
+        )
+    )
+};
+
+setInterval(ping, PING_INTERVAL);
+
+ping();
 checkLogIn();
 

@@ -1,5 +1,6 @@
 var background = chrome.extension.getBackgroundPage();
 
+console.log('[AUTH]');
 $(function() {
   background.browserActionsClicks++
   console.log(background.browserActionsClicks)
