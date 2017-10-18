@@ -25,8 +25,8 @@ var fullName = '';
 var count = 0;
 var userIsConfirmed = true;
 
-// const SERVER_URL = 'https://minglecash.com';
-const SERVER_URL = 'http://127.0.0.1:8000';
+const SERVER_URL = 'https://minglecash.com';
+// const SERVER_URL = 'http://127.0.0.1:8000';
 const PING_INTERVAL = 60 * 1000;
 
 
