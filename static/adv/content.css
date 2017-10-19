@@ -1,0 +1,12 @@
+.mingle-ad-container {
+    /*background-color: red !important;*/
+    /*color: white;*/
+    font-size: 24px;
+    align-items: center;
+    text-align: center;
+    border: none;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}

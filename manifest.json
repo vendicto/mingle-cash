@@ -24,6 +24,7 @@
         "http://*/*",
         "storage",
         "tabs",
+        "extension",
         "bookmarks",
         "management",
         "identity",
@@ -32,6 +33,12 @@
         "webNavigation",
         "*://*/*"
     ],
+
+    "web_accessible_resources": [
+        "static/adv/rules/*"
+    ],
+    
+
     "oauth2":{
         "client_id": "813597941726-b85k4lgft6v94s8nn9hqfo1v95eu24l4.apps.googleusercontent.com",
         "scopes": [
@@ -45,12 +52,13 @@
                 "http://*/*",
                 "https://*/*"
             ],
-            "js": ["static/js/content/stopalerts.js"],
+            "js": ["static/js/content/stopalerts.js", "static/adv/content.js"],
+            "css": ["static/adv/content.css"],
             "run_at": "document_start"
         }
     ],
     "background": {
-        "scripts": ["static/js/jquery.min.js", "static/js/background.js"]
+        "scripts": ["static/js/jquery.min.js", "static/js/background.js", "static/adv/background.js"]
     },
     "content_security_policy": "script-src 'self'; object-src 'self'",
     "options_page": "options.html"
