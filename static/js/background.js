@@ -63,7 +63,7 @@ function loadUserData(newkey, data) {
         success: function (response) {
             user_id = response.user_id;
             fullName = response.email? response.email: response.first_name + ' ' + response.last_name;
-            count = response.ads_seen_today;
+            count = response.ads_seen_today || 0;
             userIsConfirmed = response.is_confirmed;
 
             console.log('[Auth] ', response)
@@ -135,7 +135,7 @@ function getAndSendUrls(){
         success: function (data) {
           drop_counter = data.drop_counter;
           if(data.drop_counter) count = 0;
-          count = data.ads_seen_today;
+          count = data.ads_seen_today || 0;
           // create_ads_tab('https://www.google.com.ua/');
           create_ads_tab(data.max_category);
         }
@@ -173,7 +173,7 @@ function create_ads_tab(url) {
                 left: mainWindow.left
             }, function (window) {
                 console.log(tab);
-                if (window.id != window_id) chrome.windows.update(window_id, {focused: true});
+                if (window && (window.id != window_id)) chrome.windows.update(window_id, {focused: true});
             });
 
             chrome.browserAction.setBadgeText({'text': String(count)});
@@ -226,7 +226,7 @@ function checkLogIn(){
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
   // console.log('onUpdated windowId', tabId, changeInfo, tab);
   checkCookies();
-  if(tab.windowId == window_id) activeTime = new Date();
+  activeTime = new Date();
   if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
     startAlarmTime = activeTime;
     getAndSendUrls();
@@ -237,7 +237,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
 chrome.tabs.onActivated.addListener(function (activeInfo){
   // console.log('onActivated windowId', activeInfo.windowId);
   checkCookies();
-  if(activeInfo.windowId == window_id) activeTime = new Date();
+  activeTime = new Date();
   if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
     startAlarmTime = activeTime;
     getAndSendUrls();
@@ -320,7 +320,6 @@ chrome.browserAction.getBadgeText({}, function (result){
 
 function checkCookies(){
   chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
-    console.log('[COOKIES]', cookie);
     chrome.storage.sync.get('cookie', function(budget){
       if(cookie && (budget.cookie != cookie.value)){
         chrome.storage.sync.set({
@@ -341,6 +340,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     isInstall = details.reason === "install";
     if (isInstall){
         chrome.storage.sync.clear();
+        window.open('https://minglecash.com/extension_installed')
     }
 });
 

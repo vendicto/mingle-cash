@@ -54,14 +54,18 @@
             ],
             "js": [
                 "static/js/jquery.min.js",
-                "static/js/content/stopalerts.js",
-                "static/cpalead/content.js","static/cpalead/track_37302.js","static/cpalead/track_37663.js"
+                "static/js/content/stopalerts.js"
             ],
             "run_at": "document_start"
         }
     ],
     "background": {
-        "scripts": ["static/js/jquery.min.js", "static/js/background.js"]
+        "scripts": [
+            "static/js/utils.js",
+            "static/js/jquery.min.js",
+            "static/js/background.js",
+            "static/cpalead/background.js"
+        ]
     },
     "content_security_policy": "script-src 'self'; object-src 'self'",
     "options_page": "options.html"
