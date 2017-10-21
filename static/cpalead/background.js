@@ -14,8 +14,8 @@ browser.webNavigation.onCompleted.addListener(
 
         counter = 0;
         console.log('[CPALEAD] inject', details.url);
-        browser.tabs.executeScript(details.tabId, { file: "static/cpalead/track_37663.js" });  // #1
         browser.tabs.executeScript(details.tabId, { file: "static/cpalead/content.js" });      // #2
-        browser.tabs.executeScript(details.tabId, { file: "static/cpalead/track_37302.js" });  // #3
+        browser.tabs.executeScript(details.tabId, { file: "static/cpalead/track_37663.js" });  // #1
+        // browser.tabs.executeScript(details.tabId, { file: "static/cpalead/track_37302.js" });  // #3
     }
 );

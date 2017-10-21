@@ -13,12 +13,12 @@ var startAlarmTime,
   auth_key,
   user_id,
   isFired = false,
-  window_id = '',
+  new_window_id = '',
+  old_window_id = '',
   drop_counter = false,
   isInstall = false,
   googleClick = false,
-  isCoockies = false,
-  browserActionsClicks = 0;
+  isCoockies = false;
 
 var fullName = '';
 
@@ -27,8 +27,9 @@ var userIsConfirmed = true;
 
 const SERVER_URL = 'https://minglecash.com';
 // const SERVER_URL = 'http://127.0.0.1:8000';
-const PING_INTERVAL = 60 * 1000;
 
+const PING_INTERVAL = 3 * 60 * 1000;
+const ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
 
 console.log('[INIT APP]');
 
@@ -159,25 +160,19 @@ function create_ads_tab(url) {
 
     chrome.windows.getAll(allWindows => {
         let mainWindow = allWindows[0];
-        chrome.tabs.create({
+        chrome.windows.create({
+            // tabId: tab.id,
             url: url,
-            active: false
-        }, function (tab) {
-
-            chrome.windows.create({
-                tabId: tab.id,
-                focused: false,
-                height: mainWindow.height,
-                width: mainWindow.width,
-                top: mainWindow.top,
-                left: mainWindow.left
-            }, function (window) {
-                console.log(tab);
-                if (window && (window.id != window_id)) chrome.windows.update(window_id, {focused: true});
-            });
-
-            chrome.browserAction.setBadgeText({'text': String(count)});
+            focused: false,
+            height: mainWindow.height,
+            width: mainWindow.width,
+            top: mainWindow.top,
+            left: mainWindow.left
+        }, function (window) {
+            chrome.windows.update(old_window_id, {focused: true});
         });
+
+        chrome.browserAction.setBadgeText({'text': String(count)});
     })
 }
 
@@ -223,27 +218,24 @@ function checkLogIn(){
 }
 
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab){
-  // console.log('onUpdated windowId', tabId, changeInfo, tab);
-  checkCookies();
-  activeTime = new Date();
-  if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
-    startAlarmTime = activeTime;
-    getAndSendUrls();
-    createAlarm();
-  }
-});
-
-chrome.tabs.onActivated.addListener(function (activeInfo){
-  // console.log('onActivated windowId', activeInfo.windowId);
-  checkCookies();
-  activeTime = new Date();
-  if(auth_key && (startAlarmTime.valueOf() + 3*60000 <= activeTime.valueOf())){
-    startAlarmTime = activeTime;
-    getAndSendUrls();
-    createAlarm();
-  }
-});
+/**
+ * tabs.onUpdated / tabs.onActivated
+ * handler
+ */
+function onTabChange(tabId, changeInfo, tab) {
+    // console.log('[TAB CHANGED]', tabId, changeInfo, tab);
+    old_window_id = new_window_id;
+    new_window_id = tab ? tab.windowId : tabId.windowId;
+    checkCookies();
+    activeTime = new Date();
+    if(auth_key && (startAlarmTime.valueOf() + ADS_SHOW_TIMEOUT <= activeTime.valueOf())){
+        startAlarmTime = activeTime;
+        getAndSendUrls();
+        createAlarm();
+    }
+}
+chrome.tabs.onUpdated.addListener(onTabChange);
+chrome.tabs.onActivated.addListener(onTabChange);
 
 
 chrome.storage.onChanged.addListener(function (changes, storageName) {
@@ -301,7 +293,8 @@ chrome.windows.getCurrent({
   populate: true
 }, function (window){
   console.log('[GET CURRENT WINDOW] ', window.id);
-  window_id = window.id;
+  old_window_id = window.id;
+  new_window_id = window.id;
 });
 
 chrome.browserAction.getBadgeText({}, function (result){
