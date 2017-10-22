@@ -79,6 +79,7 @@ function loadUserData(newkey, data) {
                 chrome.extension.getViews({type: "popup"}).forEach(function(win) {
                     if(win != window) win.close();
                 });
+                ping()
             });
         }
     });
