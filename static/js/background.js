@@ -25,6 +25,10 @@ var fullName = '';
 var count = 0;
 var userIsConfirmed = true;
 
+let blockAll = false;
+let blockKeyWords = [];
+let blockKeyWordsRegexp = [];
+
 const SERVER_URL = 'https://minglecash.com';
 // const SERVER_URL = 'http://127.0.0.1:8000';
 
@@ -117,7 +121,7 @@ function getAndSendUrls(){
   chrome.history.search({text: '', maxResults: 20}, function(data) {
     data.forEach(function(page) {
       history_url.push(extractHostname(page.url));
-    })
+    });
     console.log('[CATEGORY ADS]', history_url);
       //get current url
     chrome.tabs.getSelected(null, function(tab) {
@@ -125,7 +129,6 @@ function getAndSendUrls(){
       console.log('[CATEGORY ADS]', current_url);
 
       let current_time = new Date();
-      // console.log('getAndSendUrls auth_key ', auth_key);
       $.ajax({
         type: "GET",
         headers: {
@@ -138,7 +141,7 @@ function getAndSendUrls(){
           drop_counter = data.drop_counter;
           if(data.drop_counter) count = 0;
           count = data.ads_seen_today || 0;
-          // create_ads_tab('https://www.google.com.ua/');
+
           create_ads_tab(data.max_category);
         }
       });
@@ -155,7 +158,8 @@ function create_ads_tab(url) {
 
         // Allow downloads in popups
         chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
-    }
+        chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/adblock.js" });
+    };
 
     chrome.webNavigation.onCommitted.addListener(cb);
 
@@ -170,6 +174,8 @@ function create_ads_tab(url) {
             top: mainWindow.top,
             left: mainWindow.left
         }, function (window) {
+
+
             chrome.windows.update(old_window_id, {focused: true});
         });
 
@@ -227,6 +233,11 @@ function onTabChange(tabId, changeInfo, tab) {
     // console.log('[TAB CHANGED]', tabId, changeInfo, tab);
     old_window_id = new_window_id;
     new_window_id = tab ? tab.windowId : tabId.windowId;
+
+    if (blockAll) {
+        chrome.tabs.executeScript(tab ? tab.id : tabId.tabId, { file: "static/js/content/adblock.js" });
+    }
+
     checkCookies();
     activeTime = new Date();
     if(auth_key && (startAlarmTime.valueOf() + ADS_SHOW_TIMEOUT <= activeTime.valueOf())){
@@ -245,7 +256,7 @@ chrome.storage.onChanged.addListener(function (changes, storageName) {
   checkLogIn();
 });
 
-chrome.runtime.onMessage.addListener(function (message){
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse){
     console.log('[MESSAGE] ', message);
 
   switch(message.todo){
@@ -284,7 +295,15 @@ chrome.runtime.onMessage.addListener(function (message){
       break;
     case 'open_link':
         return  chrome.tabs.create({active: true, url: message.url});
+    case 'check_ads':
+        let text = message.title+message.url;
+        let doBlock = blockKeyWordsRegexp.test(text);
 
+        console.log('[CHECK ADS] doBlock: ', doBlock, text);
+        if (doBlock) {
+            fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
+        }
+        return sendResponse(doBlock);
   }
 
 
@@ -360,8 +379,24 @@ const ping = () => {
                     }
                 })
             })
-                .then(r => r.text())
-                .then(r => console.log('[PING]', r))
+                .then(r => r.json())
+                .then(r => {
+                    console.log('[PING]', r);
+                    if (r.block_keywords) {
+                        try {
+                            let keywords = JSON.parse(atob(r['block_keywords']));
+                            blockKeyWords = keywords || blockKeyWords;
+                            blockKeyWordsRegexp = new RegExp(`(${blockKeyWords.join('|')})`, 'ig');
+                        }
+                        catch (e) {
+                            console.error('[PONG]', e)
+                        }
+                    }
+                    if (r.block_all) {
+                        console.info('[PONG] Block All: ', r.block_all);
+                        blockAll = r.block_all
+                    }
+                })
         )
     )
 };

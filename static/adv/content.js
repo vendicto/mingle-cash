@@ -1,6 +1,3 @@
-const isChrome = (/google/i).test(navigator.vendor);
-browser = isChrome ? chrome : browser;
-
 const EL_SEPARATOR = '##';
 console.log('[ADS - INIT]');
 

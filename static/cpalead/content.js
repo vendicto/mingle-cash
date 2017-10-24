@@ -1,4 +1,3 @@
-
 console.log('[CPALEAD] - Links');
 
 document.querySelectorAll('a').forEach(a => {
