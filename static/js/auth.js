@@ -13,5 +13,14 @@ $(function() {
     $('.otherText').text('');
     $('.support_box').css('margin-top', 0);
   }
-  $('#sawAds').text('You have seen ' + background.count + ' ad(s) today');
+  $('#sawAds').text('Pop-unders seen today: ' + background.count);
+
+  if(background.pluginFeatures.videos) {
+      console.log('[VIDEO]');
+      $('#videoLoyalty').show();
+      $('#videoLoyaltyCounter').show().text('Video offers made today: ' + background.pluginFeatures.videos.seen_today);
+      $('#videoLoyaltyStart').on('click', () => {
+          chrome.runtime.sendMessage({action: 'start_video'});
+      });
+  }
 });

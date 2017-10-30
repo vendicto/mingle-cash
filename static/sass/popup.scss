@@ -1,3 +1,6 @@
+body {
+    font-size: 85%;
+}
 
 .img_box{
     width: 218px;
@@ -124,11 +127,11 @@
     font-size: 18px;
     text-align: center;
 }
-.support_box, #sawAds{
+.support_box, #sawAds, #videoLoyaltyCounter, #videoLoyalty{
     text-align: center;
 }
-#sawAds{
-    margin-bottom: 20px;
+.support_box, #videoLoyalty {
+    margin-top: 20px !important;
 }
 .logged_in{
     display: none;

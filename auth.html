@@ -6,6 +6,9 @@
         <script src="static/js/jquery.min.js"></script>
         <script src="static/js/popup.js"></script>
         <script src="static/js/auth.js"></script>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="static/css/font-awesome.min.css">
+        <link rel="stylesheet" href="static/css/materialize.min.css">
         <link rel="stylesheet" href="static/css/popup.css">
 
     </head>
@@ -15,16 +18,27 @@
             <div class="greatText">Great!</div>
             <div class="otherText">You've just started using MingleCash</div>
         </div>
-        <div id="sawAds"></div>
         <div id="loggedIn">Logged in as </div>
+
         <div id="userIsConfirmed" style="display:none">
             Your account is not confirmed, please follow
-                <a href="https://minglecash.com/quick-start/">instructions</a>
+            <a href="https://minglecash.com/quick-start/">instructions</a>
             on site to complete registration
         </div>
+
+        <div>
+            <div id="sawAds"></div>
+            <div style="display:none" id="videoLoyaltyCounter"></div>
+        </div>
+
+        <div id="videoLoyalty" style="display:none">
+            To start Video compaign click <a href="#" id="videoLoyaltyStart">here</a>
+        </div>
+
         <div class="support_box">
             To contact Mingle Cash support, click <a href="https://minglecash.com/support/" target="_blank">here</a> to visit our support.
         </div>
+
     </body>
 </html>
 

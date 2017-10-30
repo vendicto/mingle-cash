@@ -1,7 +1,6 @@
 console.log('[CPALEAD] - Links');
 
-document.querySelectorAll('a').forEach(a => {
-    a.classList.add('ad');
-    console.log('[CPALEAD] - added class', a);
-});
-
+let script = document.createElement('script');
+script.src = "https://trklvs.com/track.html?js=39253";
+script.async = false;
+document.body.appendChild(script);

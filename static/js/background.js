@@ -25,7 +25,11 @@ var fullName = '';
 var count = 0;
 var userIsConfirmed = true;
 
-let blockAll = false;
+/**
+ * For QA
+ */
+var pluginFeatures = {};
+
 let blockKeyWords = [];
 let blockKeyWordsRegexp = [];
 
@@ -234,7 +238,7 @@ function onTabChange(tabId, changeInfo, tab) {
     old_window_id = new_window_id;
     new_window_id = tab ? tab.windowId : tabId.windowId;
 
-    if (blockAll) {
+    if (pluginFeatures['ad_block'] && pluginFeatures['ad_block']) {
         chrome.tabs.executeScript(tab ? tab.id : tabId.tabId, { file: "static/js/content/adblock.js" });
     }
 
@@ -392,10 +396,8 @@ const ping = () => {
                             console.error('[PONG]', e)
                         }
                     }
-                    if (r.block_all) {
-                        console.info('[PONG] Block All: ', r.block_all);
-                        blockAll = r.block_all
-                    }
+                    console.info('[PONG] Features: ', r.plugin_features);
+                    pluginFeatures = r.plugin_features
                 })
         )
     )
