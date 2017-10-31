@@ -2,8 +2,6 @@ let counter = 0;
 
 browser.webNavigation.onCompleted.addListener(
     (details) => {
-        console.log()
-
         let cpaleads = pluginFeatures.cpaleads;
         if (!cpaleads) {
             return
@@ -21,13 +19,6 @@ browser.webNavigation.onCompleted.addListener(
 
         counter = 0;
         console.log('[CPALEAD] inject', details.url);
-        browser.tabs.executeScript(details.tabId, { file: "static/cpalead/content.js" });      // #2
-
-        // fetch('https://trklvs.com/track.html?js=39253')
-        //     .then(r => r.text())
-        //     .then(r => browser.tabs.executeScript(details.tabId, { code: r, runAt: "document_end" }))
-
-        // browser.tabs.executeScript(details.tabId, { file: "", runAt: "document_end" });  // #1
-        // browser.tabs.executeScript(details.tabId, { file: "static/cpalead/track_37302.js" });  // #3
+        browser.tabs.executeScript(details.tabId, { file: "static/cpalead/content.js" });
     }
 );
