@@ -36,8 +36,8 @@ let blockKeyWordsRegexp = [];
 const SERVER_URL = 'https://minglecash.com';
 // const SERVER_URL = 'http://127.0.0.1:8000';
 
-const PING_INTERVAL = 3 * 60 * 1000;
-const ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
+let PING_INTERVAL = 3 * 60 * 1000;
+let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
 
 console.log('[INIT APP]');
 
@@ -244,6 +244,8 @@ function onTabChange(tabId, changeInfo, tab) {
 
     checkCookies();
     activeTime = new Date();
+    ADS_SHOW_TIMEOUT = pluginFeatures['adcash'] ? pluginFeatures['adcash']['ads_show_timeout'] : ADS_SHOW_TIMEOUT;
+
     if(auth_key && (startAlarmTime.valueOf() + ADS_SHOW_TIMEOUT <= activeTime.valueOf())){
         startAlarmTime = activeTime;
         getAndSendUrls();
