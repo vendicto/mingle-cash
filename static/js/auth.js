@@ -19,8 +19,5 @@ $(function() {
       console.log('[VIDEO]');
       $('#videoLoyalty').show();
       $('#videoLoyaltyCounter').show().text('Video offers made today: ' + background.pluginFeatures.videos.seen_today);
-      $('#videoLoyaltyStart').on('click', () => {
-          chrome.runtime.sendMessage({action: 'start_video'});
-      });
   }
 });

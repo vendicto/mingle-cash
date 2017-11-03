@@ -45,7 +45,7 @@ browser.tabs.onRemoved.addListener((tabId) => {
  */
 
 const isActive = () => {
-    return taskIsActive && !!pluginFeatures.videos;
+    return !!pluginFeatures.videos;
 };
 
 const openWindow = () => {
