@@ -38,8 +38,8 @@ let blockKeyWordsRegexp = '';
 const SERVER_URL = 'https://minglecash.com';
 // const SERVER_URL = 'http://127.0.0.1:8000';
 
-let PING_INTERVAL = 0.3 * 60 * 1000;
-let ADS_SHOW_TIMEOUT = 0.4 * 60 * 1000;
+let PING_INTERVAL = 3 * 60 * 1000;
+let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
 
 console.log('[INIT APP]');
 
