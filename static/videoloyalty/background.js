@@ -3,7 +3,7 @@ const DEFAULT_WINDOWS_COUNT = 3;
 const DEFAULT_ROTATION_INTERVAL = 15 * 60 * 1000;
 const DEFAULT_REOPEN_WINDOW_INTERVAL = 40 * 60 * 1000;
 
-let activeTabs = [];
+let videoActiveTabs = [];
 let taskIsActive = false;
 let nextRotationTaskTime = null;
 let nextReopenWindowsTime = null;
@@ -35,8 +35,8 @@ browser.runtime.onMessage.addListener( (message, sender, sendResponse) => {
 
 browser.tabs.onRemoved.addListener((tabId) => {
     console.log('[VIDEO] close tab ', tabId);
-    let index = activeTabs.indexOf(tabId);
-    index >= 0 && activeTabs.splice(index, 1);
+    let index = videoActiveTabs.indexOf(tabId);
+    index >= 0 && videoActiveTabs.splice(index, 1);
 });
 
 
@@ -66,7 +66,7 @@ const openWindow = () => {
             browser.tabs.getAllInWindow(window.id, (tabs) => {
                 for (let tab of tabs) {
                     browser.tabs.update(tab.id, {muted: true});
-                    activeTabs.push(tab.id);
+                    videoActiveTabs.push(tab.id);
                 }
             });
         });
@@ -81,8 +81,8 @@ const injectScript = (details) => {
 };
 
 const changeChannel = () => {
-    let index = (Math.random() * activeTabs.length).toFixed(0);
-    let tab = activeTabs[index] || activeTabs[0];
+    let index = (Math.random() * videoActiveTabs.length).toFixed(0);
+    let tab = videoActiveTabs[index] || videoActiveTabs[0];
 
     console.log('[VIDEO] Switch video', tab);
     browser.tabs.sendMessage(tab, {action: 'video_change_channel'});
@@ -103,7 +103,7 @@ const getMaxWindowsCount = () => {
 };
 
 const reopenWindows = () => {
-    if (activeTabs.length < getMaxWindowsCount()) {
+    if (videoActiveTabs.length < getMaxWindowsCount()) {
         console.log('[VIDEO] open window');
         openWindow();
         setTimeout(reopenWindows, 1000)
@@ -111,7 +111,7 @@ const reopenWindows = () => {
 };
 
 const closeAllWindows = () => {
-    browser.tabs.remove(activeTabs)
+    browser.tabs.remove(videoActiveTabs)
 };
 
 

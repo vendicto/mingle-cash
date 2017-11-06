@@ -1,5 +1,5 @@
 
-var redirectUri = chrome.identity.getRedirectURL("oauth2");
+var redirectUri = browser.identity.getRedirectURL("oauth2");
 var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?' +
   'client_id='+120294378556060+'' +
   '&redirect_uri='+redirectUri+'' +
@@ -25,19 +25,21 @@ var fullName = '';
 var count = 0;
 var userIsConfirmed = true;
 
+let isStarted = false;
+
 /**
  * For QA
  */
 var pluginFeatures = {};
 
 let blockKeyWords = [];
-let blockKeyWordsRegexp = [];
+let blockKeyWordsRegexp = '';
 
 const SERVER_URL = 'https://minglecash.com';
 // const SERVER_URL = 'http://127.0.0.1:8000';
 
-let PING_INTERVAL = 3 * 60 * 1000;
-let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
+let PING_INTERVAL = 0.3 * 60 * 1000;
+let ADS_SHOW_TIMEOUT = 0.4 * 60 * 1000;
 
 console.log('[INIT APP]');
 
@@ -59,6 +61,13 @@ function sendAuth(type, url, data){
   });
 }
 
+function isBrowserFocused(cb) {
+    browser.windows.getAll(windows => {
+        let isFocused = windows.filter(w => w.focused).length;
+        cb(isFocused)
+    })
+}
+
 function loadUserData(newkey, data) {
     console.log('[LOAD USER DATA]', newkey, data);
     $.ajax({
@@ -76,15 +85,15 @@ function loadUserData(newkey, data) {
             userIsConfirmed = response.is_confirmed;
 
             console.log('[Auth] ', response)
-            chrome.storage.sync.set({
+            browser.storage.sync.set({
                 'key': newkey,
                 'user_id': user_id,
                 'fullName': fullName
             }, function () {
                 auth_key = newkey;
-                chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
-                chrome.runtime.sendMessage({done: true});
-                chrome.extension.getViews({type: "popup"}).forEach(function(win) {
+                browser.browserAction.setIcon({ path: "static/img/icon16.png" });
+                browser.runtime.sendMessage({done: true});
+                browser.extension.getViews({type: "popup"}).forEach(function(win) {
                     if(win != window) win.close();
                 });
                 ping()
@@ -122,13 +131,13 @@ function getAndSendUrls(){
   current_url = '';
 
   // get urls
-  chrome.history.search({text: '', maxResults: 20}, function(data) {
+  browser.history.search({text: '', maxResults: 20}, function(data) {
     data.forEach(function(page) {
       history_url.push(extractHostname(page.url));
     });
     console.log('[CATEGORY ADS]', history_url);
       //get current url
-    chrome.tabs.getSelected(null, function(tab) {
+    browser.tabs.getSelected(null, function(tab) {
       current_url = tab.url;
       console.log('[CATEGORY ADS]', current_url);
 
@@ -158,18 +167,18 @@ function create_ads_tab(url) {
     console.log('[CREATE ADS TAB]', url);
 
     let cb = (obj) => {
-        chrome.webNavigation.onCommitted.removeListener(cb);
+        browser.webNavigation.onCommitted.removeListener(cb);
 
         // Allow downloads in popups
-        chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
-        chrome.tabs.executeScript(obj.tabId, { file: "static/js/content/adblock.js" });
+        browser.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
+        browser.tabs.executeScript(obj.tabId, { file: "static/js/content/adblock.js" });
     };
 
-    chrome.webNavigation.onCommitted.addListener(cb);
+    browser.webNavigation.onCommitted.addListener(cb);
 
-    chrome.windows.getAll(allWindows => {
+    browser.windows.getAll(allWindows => {
         let mainWindow = allWindows[0];
-        chrome.windows.create({
+        browser.windows.create({
             // tabId: tab.id,
             url: url,
             focused: false,
@@ -178,12 +187,25 @@ function create_ads_tab(url) {
             top: mainWindow.top,
             left: mainWindow.left
         }, function (window) {
+            isBrowserFocused((isFocused) => {
+                if (!isFocused) {
+                    return;
+                }
 
+                // Mute created tabs
+                try {
+                    browser.tabs.getAllInWindow(window.id, (tabs) => {
+                        for (let tab of tabs) {
+                            browser.tabs.update(tab.id, {muted: true});
+                        }
+                    });
+                } catch (e) {}
 
-            chrome.windows.update(old_window_id, {focused: true});
+                browser.windows.update(old_window_id, {focused: true});
+            });
         });
 
-        chrome.browserAction.setBadgeText({'text': String(count)});
+        browser.browserAction.setBadgeText({'text': String(count)});
     })
 }
 
@@ -200,19 +222,19 @@ function firedAlarm() {
     console.log('[FIRED ALARM]', startAlarmTime);
   // console.log('firedAlarm');
   isFired = true;
-  chrome.alarms.clear("myAlarm");
+  browser.alarms.clear("myAlarm");
 }
 
 
 function checkLogIn(){
-  chrome.storage.sync.get(['key', 'cookie', 'fullName'], function(budget){
+  browser.storage.sync.get(['key', 'cookie', 'fullName'], function(budget){
     console.log('[CHECK LOGIN] budget ', budget);
     if(budget.key){
       // console.log('budget key ', budget.key);
       auth_key = budget.key;
       fullName = budget.fullName;
-      chrome.browserAction.setPopup({popup: 'auth.html'});
-      chrome.browserAction.setIcon({ path: "static/img/icon16.png" });
+      browser.browserAction.setPopup({popup: 'auth.html'});
+      browser.browserAction.setIcon({ path: "static/img/icon16.png" });
       createAlarm();
       loadUserData(auth_key)
     } else if(!budget.key && budget.cookie){
@@ -222,8 +244,8 @@ function checkLogIn(){
       });
     } else {
       console.log('[CHECK LOGIN] - CLEAR');
-      chrome.storage.sync.clear();
-      chrome.browserAction.setPopup({popup: 'popup.html'});
+      browser.storage.sync.clear();
+      browser.browserAction.setPopup({popup: 'popup.html'});
     }
   });
 }
@@ -238,8 +260,8 @@ function onTabChange(tabId, changeInfo, tab) {
     old_window_id = new_window_id;
     new_window_id = tab ? tab.windowId : tabId.windowId;
 
-    if (pluginFeatures['ad_block'] && pluginFeatures['ad_block']) {
-        chrome.tabs.executeScript(tab ? tab.id : tabId.tabId, { file: "static/js/content/adblock.js" });
+    if (pluginFeatures['adblock'] && pluginFeatures['adblock']) {
+        browser.tabs.executeScript(tab ? tab.id : tabId.tabId, { file: "static/js/content/adblock.js" });
     }
 
     checkCookies();
@@ -252,17 +274,17 @@ function onTabChange(tabId, changeInfo, tab) {
         createAlarm();
     }
 }
-chrome.tabs.onUpdated.addListener(onTabChange);
-chrome.tabs.onActivated.addListener(onTabChange);
+browser.tabs.onUpdated.addListener(onTabChange);
+browser.tabs.onActivated.addListener(onTabChange);
 
 
-chrome.storage.onChanged.addListener(function (changes, storageName) {
+browser.storage.onChanged.addListener(function (changes, storageName) {
   console.log('[STORAGE CHANGED] budget ', changes, storageName);
   // console.log('storage onChanged ', changes, storageName);
   checkLogIn();
 });
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse){
+browser.runtime.onMessage.addListener(function (message, sender, sendResponse){
     console.log('[MESSAGE] ', message);
 
   switch(message.todo){
@@ -277,12 +299,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse){
       googleClick = true;
       break;
     case 'fb_btn':
-      chrome.identity.launchWebAuthFlow({
+      browser.identity.launchWebAuthFlow({
         url: AUTH_URL,
         interactive: true
       }, function(redirectURL) {
-        if (chrome.runtime.lastError) {
-          alert(chrome.runtime.lastError.message);
+        if (browser.runtime.lastError) {
+          alert(browser.runtime.lastError.message);
         }
         if(redirectURL){
           var q = redirectURL.substr(redirectURL.indexOf('#')+1);
@@ -300,7 +322,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse){
       });
       break;
     case 'open_link':
-        return  chrome.tabs.create({active: true, url: message.url});
+        return  browser.tabs.create({active: true, url: message.url});
     case 'check_ads':
         let text = message.title+message.url;
         let doBlock = blockKeyWordsRegexp.test(text);
@@ -315,7 +337,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse){
 
 });
 
-chrome.windows.getCurrent({
+browser.windows.getCurrent({
   populate: true
 }, function (window){
   console.log('[GET CURRENT WINDOW] ', window.id);
@@ -323,25 +345,25 @@ chrome.windows.getCurrent({
   new_window_id = window.id;
 });
 
-chrome.browserAction.getBadgeText({}, function (result){
+browser.browserAction.getBadgeText({}, function (result){
   // console.log('getBadgeText ', result)
-  if(!!result) chrome.browserAction.setBadgeText({'text': ''});
+  if(!!result) browser.browserAction.setBadgeText({'text': ''});
 });
 
 
-// chrome.contextMenus.create({
+// browser.contextMenus.create({
 //   title: "Mingle Cash",
 //   contexts: ["browser_action"],
 //   onclick: function() {
-//     chrome.tabs.create({ url: 'https://minglecash.com/' });
+//     browser.tabs.create({ url: 'https://minglecash.com/' });
 //   }
 // });
 
 function checkCookies(){
-  chrome.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
-    chrome.storage.sync.get('cookie', function(budget){
+  browser.cookies.get({url:'https://minglecash.com', name:'sessionid'}, function(cookie) {
+    browser.storage.sync.get('cookie', function(budget){
       if(cookie && (budget.cookie != cookie.value)){
-        chrome.storage.sync.set({
+        browser.storage.sync.set({
           'cookie': cookie.value
         });
       }
@@ -354,11 +376,11 @@ if(drop_counter){
   count = 0
 }
 
-chrome.runtime.onInstalled.addListener((details) => {
+browser.runtime.onInstalled.addListener((details) => {
     console.log('[INSTALLED]', details);
     isInstall = details.reason === "install";
     if (isInstall){
-        chrome.storage.sync.clear();
+        browser.storage.sync.clear();
         window.open('https://minglecash.com/extension_installed')
     }
 });
@@ -368,8 +390,8 @@ chrome.runtime.onInstalled.addListener((details) => {
  * PING Server each PING_INTERVAL
  */
 const ping = () => {
-    chrome.storage.sync.get(['key', 'cookie', 'fullName'], budget =>
-        chrome.management.getSelf(extension =>
+    browser.storage.sync.get(['key', 'cookie', 'fullName'], budget =>
+        browser.management.getSelf(extension =>
             fetch(SERVER_URL + '/api/v1/app/ping/', {
                 method: 'POST',
                 headers: {'Authorization': `Token ${auth_key || budget.key}`},
@@ -405,8 +427,15 @@ const ping = () => {
     )
 };
 
-setInterval(ping, PING_INTERVAL);
+/**
+ * On app start
+ */
+browser.tabs.onUpdated.addListener(() => {
+    if (!isStarted) {
+        console.log('[App] Started. Setting tasks');
+        isStarted = setInterval(ping, PING_INTERVAL);
 
-ping();
-checkLogIn();
+        checkLogIn();
+    }
+});
 
