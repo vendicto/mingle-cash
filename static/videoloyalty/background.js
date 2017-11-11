@@ -1,13 +1,14 @@
 const RUN_TASK_INTERVAL = 10 * 1000;
 const DEFAULT_WINDOWS_COUNT = 3;
-const DEFAULT_ROTATION_INTERVAL = 15 * 60 * 1000;
-const DEFAULT_REOPEN_WINDOW_INTERVAL = 40 * 60 * 1000;
+const DEFAULT_ROTATION_INTERVAL = 4 * 60 * 1000;
+const DEFAULT_REOPEN_WINDOW_INTERVAL = 0.5 * 60 * 1000;
 
 let videoActiveTabs = [];
 let taskIsActive = false;
 let nextRotationTaskTime = null;
 let nextReopenWindowsTime = null;
 
+let isVideoStarted = false;
 
 /**
  * Listeners
@@ -49,7 +50,7 @@ const isActive = () => {
 };
 
 const openWindow = () => {
-    console.log('[VIDEO] Open window ');
+    console.log('[VIDEO] Creating new window ');
 
     chrome.windows.getAll(allWindows => {
         let mainWindow = allWindows[0];
@@ -60,15 +61,30 @@ const openWindow = () => {
             width: mainWindow.width,
             top: mainWindow.top,
             left: mainWindow.left
-        }, function (window) {
-            console.log('[VIDEO] Open window ', window.id);
+        }, function (window, a, b, c, d) {
+            console.log('[VIDEO] Created window id: ', window.id, a, b, c, d);
 
-            browser.tabs.getAllInWindow(window.id, (tabs) => {
-                for (let tab of tabs) {
-                    browser.tabs.update(tab.id, {muted: true});
-                    videoActiveTabs.push(tab.id);
-                }
+            isBrowserFocused((isFocused) => {
+                console.log('[VIDEO] browser is focused: ', isFocused);
+
+                // Mute created tabs
+                try {
+                    browser.tabs.getAllInWindow(window.id, (tabs) => {
+                        for (let tab of tabs) {
+                            browser.tabs.update(tab.id, {muted: true});
+                            videoActiveTabs.push(tab.id);
+                        }
+
+                        if (!isFocused) {
+                            return;
+                        }
+
+                        console.log('[VIDEO] focus on previous tab: ', isFocused);
+                        browser.windows.update(old_window_id, {focused: true});
+                    })
+                } catch (e) {}
             });
+
         });
 
         browser.browserAction.setBadgeText({'text': String(count)});
@@ -85,16 +101,16 @@ const changeChannel = () => {
     let tab = videoActiveTabs[index] || videoActiveTabs[0];
 
     console.log('[VIDEO] Switch video', tab);
-    browser.tabs.sendMessage(tab, {action: 'video_change_channel'});
+    tab && browser.tabs.sendMessage(tab, {action: 'video_change_channel'});
 };
 
 const planNewTask = () => {
-    nextRotationTaskTime = new Date().getTime() + (pluginFeatures.videos['channel_rotation_interval'] || DEFAULT_ROTATION_INTERVAL);
+    nextRotationTaskTime = new Date().getTime() + DEFAULT_ROTATION_INTERVAL//(pluginFeatures.videos['channel_rotation_interval'] || DEFAULT_ROTATION_INTERVAL);
     console.log('[VIDEO] new task', nextRotationTaskTime);
 };
 
 const planReopenWindowTask = () => {
-    nextReopenWindowsTime = new Date().getTime() + (pluginFeatures.videos['window_reopen_interval'] || DEFAULT_REOPEN_WINDOW_INTERVAL);
+    nextReopenWindowsTime = new Date().getTime() + DEFAULT_REOPEN_WINDOW_INTERVAL //(pluginFeatures.videos['window_reopen_interval'] || DEFAULT_REOPEN_WINDOW_INTERVAL);
     console.log('[VIDEO] new task', nextReopenWindowsTime);
 };
 
@@ -106,7 +122,7 @@ const reopenWindows = () => {
     if (videoActiveTabs.length < getMaxWindowsCount()) {
         console.log('[VIDEO] open window');
         openWindow();
-        setTimeout(reopenWindows, 1000)
+        setTimeout(reopenWindows, 4000)
     }
 };
 
@@ -142,4 +158,13 @@ const runTask = () => {
     reopenWindows()
 };
 
-setInterval(runTask, RUN_TASK_INTERVAL);
+/**
+ * On app start
+ */
+browser.tabs.onUpdated.addListener(() => {
+    if (!isVideoStarted) {
+
+        setInterval(runTask, RUN_TASK_INTERVAL);
+        isVideoStarted = true;
+    }
+});

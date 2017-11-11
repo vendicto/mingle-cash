@@ -255,14 +255,10 @@ function checkLogIn(){
  * tabs.onUpdated / tabs.onActivated
  * handler
  */
-function onTabChange(tabId, changeInfo, tab) {
+function onTabChange(tabId, windowId) {
     // console.log('[TAB CHANGED]', tabId, changeInfo, tab);
     old_window_id = new_window_id;
-    new_window_id = tab ? tab.windowId : tabId.windowId;
-
-    if (pluginFeatures['adblock'] && pluginFeatures['adblock']) {
-        browser.tabs.executeScript(tab ? tab.id : tabId.tabId, { file: "static/js/content/adblock.js" });
-    }
+    new_window_id = windowId;
 
     checkCookies();
     activeTime = new Date();
@@ -274,8 +270,26 @@ function onTabChange(tabId, changeInfo, tab) {
         createAlarm();
     }
 }
-browser.tabs.onUpdated.addListener(onTabChange);
-browser.tabs.onActivated.addListener(onTabChange);
+
+browser.tabs.onActivated.addListener((activeInfo) => {
+    browser.tabs.get(activeInfo.tabId, tab => {
+
+        console.warn('[ACTIVATE] ', tab.url);
+
+        if (pluginFeatures['adblock'] && pluginFeatures['adblock']['blockAll']) {
+            browser.tabs.executeScript(activeInfo.tabId, { file: "static/js/content/adblock.js" });
+        }
+
+        // To ignore tabs that were created by videolayalty background
+        let i = new RegExp(/nicevideowatching/, 'gi').test(tab.url);
+
+        if (i || (videoActiveTabs.indexOf(activeInfo.tabId) >= 0 )) {
+            return console.log('[ACTIVATE] IGNORE ', activeInfo.tabId, tab.url);
+        }
+
+        onTabChange(activeInfo.tabId, activeInfo.windowId)
+    })
+});
 
 
 browser.storage.onChanged.addListener(function (changes, storageName) {
@@ -325,9 +339,9 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse){
         return  browser.tabs.create({active: true, url: message.url});
     case 'check_ads':
         let text = message.title+message.url;
-        let doBlock = blockKeyWordsRegexp.test(text);
+        let doBlock = text.match(blockKeyWordsRegexp);
 
-        console.log('[CHECK ADS] doBlock: ', doBlock, text);
+        // console.log('[CHECK ADS] doBlock: ', doBlock, text);
         if (doBlock) {
             fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
         }

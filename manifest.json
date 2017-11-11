@@ -3,7 +3,7 @@
     "manifest_version": 2,
     "author": "minglecash.com",
     "name": "Mingle Cash",
-    "version": "1.0.31",
+    "version": "1.0.32",
     "icons": {
         "128": "static/img/icon128.png",
         "48": "static/img/icon48.png",
@@ -38,6 +38,7 @@
         "static/adv/rules/*"
     ],
 
+    "incognito" : "spanning",
 
     "oauth2":{
         "client_id": "813597941726-b85k4lgft6v94s8nn9hqfo1v95eu24l4.apps.googleusercontent.com",
