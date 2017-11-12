@@ -129,7 +129,6 @@ browser.tabs.onActivated.addListener((activeInfo) => {
             browser.tabs.executeScript(activeInfo.tabId, {file: "static/js/content/adblock.js"});
         }
         if (pluginFeatures['timer'] && pluginFeatures['timer']['all'] && adcashActiveTabs.indexOf(tab.id) < 0) {
-            adcashActiveTabs.push(tab.id);
             browser.tabs.executeScript(activeInfo.tabId, {file: "static/js/content/timer.js"});
         }
 
@@ -197,8 +196,9 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             let text = message.title + message.url;
             let doBlock = text.match(blockKeyWordsRegexp);
 
-            // console.log('[CHECK ADS] doBlock: ', doBlock, text);
+            console.log('[AD_BLOCK] check content: ', text);
             if (doBlock) {
+                console.error('[AD_BLOCK] found bad content: ', doBlock, text);
                 fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
             }
             return sendResponse(doBlock);

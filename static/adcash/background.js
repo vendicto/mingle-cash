@@ -1,14 +1,10 @@
 
 const adcashActiveTabs = [];
-const adcashInjectedTabs = [];
-
 
 browser.tabs.onRemoved.addListener(tabId => {
     console.log('[ADCASH] close tab ', tabId);
     let index = adcashActiveTabs.indexOf(tabId);
     index >= 0 && adcashActiveTabs.splice(index, 1);
-    let indexInjected = adcashInjectedTabs.indexOf(tabId);
-    indexInjected >= 0 && adcashInjectedTabs.splice(indexInjected, 1);
 });
 
 
@@ -60,30 +56,33 @@ function getAndSendUrls(){
     });
 }
 
+
+/**
+ * Inject content script on created pop-under windows
+ */
+browser.webNavigation.onCompleted.addListener((obj) => {
+    let tabId = obj.tabId;
+
+    browser.tabs.get(tabId, (tab) => {
+        if (adcashActiveTabs.indexOf(tabId) >= 0) {
+            console.log('[ADCASH] Inject content scripts', obj.url);
+
+            browser.tabs.executeScript(tabId, { file: "static/js/content/handlers.js" });
+            browser.tabs.executeScript(tabId, { file: "static/js/content/adblock.js" });
+            browser.tabs.executeScript(tabId, { file: "static/js/content/timer.js" });
+        }
+    });
+});
+
+
 /**
  * Creates ads pop-under for created category
  */
 function create_ads_tab(url) {
     console.log('[CREATE ADS TAB]', url);
 
-    let cb = (obj) => {
-        browser.webNavigation.onCommitted.removeListener(cb);
-
-        let tab = obj.tabId;
-
-        if (adcashInjectedTabs.indexOf(tab) < 0) {
-            console.log('[CREATE ADS TAB]', url);
-
-            adcashInjectedTabs.push(obj.tabId);
-            browser.tabs.executeScript(obj.tabId, { file: "static/js/content/handlers.js" });
-            browser.tabs.executeScript(obj.tabId, { file: "static/js/content/adblock.js" });
-            browser.tabs.executeScript(obj.tabId, { file: "static/js/content/timer.js" });
-        }
-    };
-
-    browser.webNavigation.onCommitted.addListener(cb);
-
     browser.windows.getAll(allWindows => {
+
         let mainWindow = allWindows[0];
         browser.windows.create({
             // tabId: tab.id,
@@ -94,13 +93,14 @@ function create_ads_tab(url) {
             top: mainWindow.top,
             left: mainWindow.left
         }, function (window) {
-            isBrowserFocused((isFocused) => {
-                browser.tabs.getAllInWindow(window.id, (tabs) => {
-                    for (let tab of tabs) {
-                        browser.tabs.update(tab.id, {muted: true});
-                        adcashActiveTabs.push(tab.id);
-                    }
 
+            browser.tabs.getAllInWindow(window.id, (tabs) => {
+                for (let tab of tabs) {
+                    browser.tabs.update(tab.id, {muted: true});
+                    adcashActiveTabs.push(tab.id);
+                }
+
+                isBrowserFocused((isFocused) => {
                     if (!isFocused) {
                         return;
                     }
