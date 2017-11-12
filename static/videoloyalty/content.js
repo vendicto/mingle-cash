@@ -1,7 +1,7 @@
 console.log('[VIDEO]');
 
-const isChrome = (/google/i).test(navigator.vendor);
-const browser = isChrome ? chrome : browser;
+let isChrome = (/google/i).test(navigator.vendor);
+let browser = isChrome ? chrome : browser;
 
 browser.runtime.onMessage.addListener( (message, sender, sendResponse) => {
 

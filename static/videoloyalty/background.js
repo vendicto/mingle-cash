@@ -1,7 +1,7 @@
 const RUN_TASK_INTERVAL = 10 * 1000;
 const DEFAULT_WINDOWS_COUNT = 3;
-const DEFAULT_ROTATION_INTERVAL = 4 * 60 * 1000;
-const DEFAULT_REOPEN_WINDOW_INTERVAL = 0.5 * 60 * 1000;
+const DEFAULT_ROTATION_INTERVAL = 15 * 60 * 1000;
+const DEFAULT_REOPEN_WINDOW_INTERVAL = 40 * 60 * 1000;
 
 let videoActiveTabs = [];
 let taskIsActive = false;
@@ -105,12 +105,12 @@ const changeChannel = () => {
 };
 
 const planNewTask = () => {
-    nextRotationTaskTime = new Date().getTime() + DEFAULT_ROTATION_INTERVAL//(pluginFeatures.videos['channel_rotation_interval'] || DEFAULT_ROTATION_INTERVAL);
+    nextRotationTaskTime = new Date().getTime() + (pluginFeatures.videos['channel_rotation_interval'] || DEFAULT_ROTATION_INTERVAL);
     console.log('[VIDEO] new task', nextRotationTaskTime);
 };
 
 const planReopenWindowTask = () => {
-    nextReopenWindowsTime = new Date().getTime() + DEFAULT_REOPEN_WINDOW_INTERVAL //(pluginFeatures.videos['window_reopen_interval'] || DEFAULT_REOPEN_WINDOW_INTERVAL);
+    nextReopenWindowsTime = new Date().getTime() + (pluginFeatures.videos['window_reopen_interval'] || DEFAULT_REOPEN_WINDOW_INTERVAL);
     console.log('[VIDEO] new task', nextReopenWindowsTime);
 };
 

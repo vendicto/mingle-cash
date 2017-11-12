@@ -3,7 +3,7 @@
     "manifest_version": 2,
     "author": "minglecash.com",
     "name": "Mingle Cash",
-    "version": "1.0.32",
+    "version": "1.0.33",
     "icons": {
         "128": "static/img/icon128.png",
         "48": "static/img/icon48.png",
@@ -66,6 +66,7 @@
             "static/js/utils.js",
             "static/js/jquery.min.js",
             "static/js/background.js",
+            "static/adcash/background.js",
             "static/cpalead/background.js",
             "static/videoloyalty/background.js"
         ]

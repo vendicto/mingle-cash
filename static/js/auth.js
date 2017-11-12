@@ -15,7 +15,13 @@ $(function() {
   }
   $('#sawAds').text('Pop-unders seen today: ' + background.count);
 
-  if(background.pluginFeatures.videos) {
+  let features = background.pluginFeatures;
+
+  if (features['adcash'] && features['adcash']['limit_exceeded']) {
+      $('#sawAds').append('<p style="color:red">Daily limit of pop-unders exceeded!</p>')
+  }
+
+  if(features.videos) {
       console.log('[VIDEO]');
       $('#videoLoyalty').show();
       $('#videoLoyaltyCounter').show().text('Video offers made today: ' + background.pluginFeatures.videos.seen_today);

@@ -1,4 +1,6 @@
 
+// Script allow downloads in popups
+
 const openLink = (url) =>
     url && chrome.runtime.sendMessage({action: 'open_link', url});
 
