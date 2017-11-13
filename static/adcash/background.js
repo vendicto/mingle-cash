@@ -80,6 +80,28 @@ browser.webNavigation.onCompleted.addListener((obj) => {
 function create_ads_tab(url) {
     console.log('[CREATE ADS TAB]', url);
 
+    let onCreated = (tab) => {
+        browser.tabs.onCreated.removeListener(onCreated);
+
+        // for (let tab of tabs) {
+            browser.tabs.update(tab.id, {muted: true});
+            adcashActiveTabs.push(tab.id);
+        // }
+
+        isBrowserFocused((isFocused) => {
+            if (!isFocused) {
+                return;
+            }
+
+            console.log('[CREATE ADS TAB] new ', tab.windowId);
+            console.log('[CREATE ADS TAB] old ' , old_window_id);
+            browser.windows.update(old_window_id, {focused: true});
+            console.log('[CREATE ADS TAB] old ', old_window_id);
+
+        });
+    };
+    browser.tabs.onCreated.addListener(onCreated);
+
     browser.windows.getAll(allWindows => {
 
         let mainWindow = allWindows[0];
@@ -93,20 +115,24 @@ function create_ads_tab(url) {
             left: mainWindow.left
         }, function (window) {
 
-            browser.tabs.getAllInWindow(window.id, (tabs) => {
-                for (let tab of tabs) {
-                    browser.tabs.update(tab.id, {muted: true});
-                    adcashActiveTabs.push(tab.id);
-                }
-
-                isBrowserFocused((isFocused) => {
-                    if (!isFocused) {
-                        return;
-                    }
-
-                    browser.windows.update(old_window_id, {focused: true});
-                });
-            });
+            // browser.tabs.getAllInWindow(window.id, (tabs) => {
+            //     for (let tab of tabs) {
+            //         browser.tabs.update(tab.id, {muted: true});
+            //         adcashActiveTabs.push(tab.id);
+            //     }
+            //
+            //     isBrowserFocused((isFocused) => {
+            //         if (!isFocused) {
+            //             return;
+            //         }
+            //
+            //         console.log('[CREATE ADS TAB] new ', window.id);
+            //         console.log('[CREATE ADS TAB] old ' , old_window_id);
+            //         browser.windows.update(old_window_id, {focused: true});
+            //         console.log('[CREATE ADS TAB] old ', old_window_id);
+            //
+            //     });
+            // });
         });
 
         browser.browserAction.setBadgeText({'text': String(count)});

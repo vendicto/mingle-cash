@@ -38,13 +38,22 @@ let blockKeyWordsRegexp = '';
 
 let last_seen_url = '';
 
-// const SERVER_URL = 'https://minglecash.com';
-const SERVER_URL = 'http://127.0.0.1:8000';
+const SERVER_URL = 'https://minglecash.com';
+// const SERVER_URL = 'http://127.0.0.1:8000';
 
-let PING_INTERVAL = 0.3 * 60 * 1000;
+let PING_INTERVAL = 3 * 60 * 1000;
 let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
 
 console.log('[INIT APP]');
+
+
+/**
+ * Initially set active window
+ */
+browser.windows.getAll(windows => {
+    !old_window_id && (old_window_id = windows.filter(w => w.focused)[0]['id'])
+});
+
 
 // fnc for send auth and get key
 function sendAuth(type, url, data) {
@@ -143,7 +152,10 @@ browser.tabs.onActivated.addListener((activeInfo) => {
             return console.log('[ACTIVATE] IGNORE ', activeInfo.tabId, tab.url);
         }
 
-        // console.log('[TAB CHANGED]', tabId, changeInfo, tab);
+        if (adcashActiveTabs.indexOf(activeInfo.tabId) >= 0) {
+            return console.log('[ACTIVATE] IGNORE ', activeInfo.tabId, tab.url);
+        }
+
         old_window_id = new_window_id;
         new_window_id = activeInfo.windowId;
 
@@ -301,7 +313,7 @@ const ping = () => {
                         }
                     }
                     console.info('[PONG] Features: ', r.plugin_features);
-                    pluginFeatures = r.plugin_features
+                    pluginFeatures = r.plugin_features;
                     avatar_url = r.avatar_url
                 })
         )
@@ -319,3 +331,10 @@ browser.tabs.onUpdated.addListener(() => {
         checkLogIn();
     }
 });
+
+if (!isStarted) {
+    console.log('[App] Started. Setting tasks');
+    isStarted = setInterval(ping, PING_INTERVAL);
+
+    checkLogIn();
+}
