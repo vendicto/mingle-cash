@@ -29,11 +29,30 @@ $(function() {
 
     });
   
-    if(background.fullName.length > 1){
+    if (background.fullName.length > 1) {
       $('#loggedIn').text('Logged in as ' + background.fullName).css('display', 'block');
+
+      $('.user-info').html(`
+            <div class="col s12 m6">
+                <div class="card user-info-body z-depth-1">
+                    <div class="col s2 mc-user-avatar"></div>
+                    <div class="col s10 mc-user-name">
+                      <span></span>
+                    </div>
+                </div>
+            </div>
+      `);
+
+      $('.mc-user-avatar').html(
+          background.avatar_url
+              ? `<img src="${background.avatar_url}" alt="" class="circle medium responsive-img">`
+              : `<i class="material-icons circle medium">account_circle</i>`
+      );
+
+      $('.mc-user-name span').text(background.fullName);
     }
 
-    $('#userIsConfirmed').css('display', background.userIsConfirmed ? 'none' : 'block')
+    $('#userIsConfirmed').css('display', background.userIsConfirmed ? 'none' : 'block');
 
     console.log('[POPUP - INITIALIZED]');
 });

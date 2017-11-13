@@ -13,28 +13,40 @@
 
     </head>
     <body>
-        <div class="img_box"><img src="static/img/mingle-cash.png" alt=""></div>
+
+        <div class="img_box card z-depth-2">
+            <img src="static/img/mingle-cash.png" alt="">
+        </div>
+
+        <div class="user-info row"></div>
+
         <div class="great_auth">
             <div class="greatText">Great!</div>
             <div class="otherText">You've just started using MingleCash</div>
         </div>
-        <div id="loggedIn">Logged in as </div>
 
-        <div id="userIsConfirmed" style="display:none">
-            Your account is not confirmed, please follow
-            <a href="https://minglecash.com/quick-start/">instructions</a>
-            on site to complete registration
+        <div class="col s12 m6">
+
+            <div id="userIsConfirmed" style="display:none">
+                Your account is not confirmed, please follow
+                <a href="https://minglecash.com/quick-start/">instructions</a>
+                on site to complete registration
+            </div>
+
+            <div>
+                <div id="sawAds"></div>
+                <div style="display:none" id="videoLoyaltyCounter"></div>
+            </div>
+
+            <footer style="height: 50px">
+                <div class="container">
+                    <div class="support_box">
+                        To contact Mingle Cash support, click <a href="https://minglecash.com/support/" target="_blank">here</a> to visit our support.
+                    </div>
+                </div>
+            </footer>
+
         </div>
-
-        <div>
-            <div id="sawAds"></div>
-            <div style="display:none" id="videoLoyaltyCounter"></div>
-        </div>
-
-        <div class="support_box">
-            To contact Mingle Cash support, click <a href="https://minglecash.com/support/" target="_blank">here</a> to visit our support.
-        </div>
-
     </body>
 </html>
 

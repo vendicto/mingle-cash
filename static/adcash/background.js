@@ -1,6 +1,4 @@
 
-const adcashActiveTabs = [];
-
 browser.tabs.onRemoved.addListener(tabId => {
     console.log('[ADCASH] close tab ', tabId);
     let index = adcashActiveTabs.indexOf(tabId);
@@ -16,9 +14,10 @@ function getAndSendUrls(){
 
     if (adcashActiveTabs.length > pluginFeatures['adcash']['max_windows']) {
         console.error('[CATEGORY ADS] MAX WINDOWS EXCEEDED');
+        browser.browserAction.setBadgeText({'text': String('!')});
+        browser.browserAction.setBadgeBackgroundColor({color: 'red'});
         return false
     }
-
 
     history_url = [];
     current_url = '';
@@ -40,7 +39,7 @@ function getAndSendUrls(){
                 headers: {
                     'Authorization' : `Token ${auth_key}`
                 },
-                url: "https://minglecash.com/api/v1/category-ads/",
+                url: SERVER_URL + "/api/v1/category-ads/",
                 data: {url: current_url, history: history_url, user_id: user_id, time: current_time.toDateString()},
                 dataType: "json",
                 success: function (data) {
@@ -111,6 +110,7 @@ function create_ads_tab(url) {
         });
 
         browser.browserAction.setBadgeText({'text': String(count)});
+        browser.browserAction.setBadgeBackgroundColor({color: 'blue'});
     })
 }
 
@@ -139,6 +139,8 @@ function firedAlarm() {
 function checkAdcash() {
     if (pluginFeatures['adcash'] && pluginFeatures['adcash']['limit_exceeded']) {
         console.warn('[ADCASH] DAILY LIMIT EXCEEDED');
+        browser.browserAction.setBadgeText({'text': String('!')});
+        browser.browserAction.setBadgeBackgroundColor({color: 'green'});
         return
     }
 

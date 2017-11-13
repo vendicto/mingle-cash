@@ -7,7 +7,7 @@ console.log('[TIMER]');
 
     const MC_TIMER_STYLE = 'position: fixed; top: 0; width: 100%; z-index: 99999; text-align: center';
     const MC_TIMER_TEMPL = `
-            <div style="background: {{mc_color}};padding: 20px;">
+            <div style="background: {{mc_color}};padding: 10px;">
                 <div style="font-size: 20px;color: white;">{{mc_time}}</div>
             </div>`;
 
@@ -24,7 +24,7 @@ console.log('[TIMER]');
         timer.innerHTML = tpl
     };
 
-    setInterval(() =>
+    const intervalTask = setInterval(() =>
         browser.runtime.sendMessage({todo: 'timer_ping', title: document.title, url: document.location.href}, info => {
             console.log('[Timer] selected', info.tabSelected);
 
@@ -32,6 +32,8 @@ console.log('[TIMER]');
                 time_spent_on_page += 1;
 
                 if (time_spent_on_page > info.minTimeOnPage) {
+                    clearInterval(intervalTask);
+                    browser.runtime.sendMessage({todo: 'ads_seen', url: document.location.href});
                     return renderTemplate('Now you can close this window!', '#5cb85c')
                 }
 

@@ -20,6 +20,7 @@ var startAlarmTime,
     isCoockies = false;
 
 var fullName = '';
+var avatar_url = '';
 
 var count = 0;
 var userIsConfirmed = true;
@@ -31,13 +32,16 @@ let isStarted = false;
  */
 var pluginFeatures = {};
 
+var adcashActiveTabs = [];
 let blockKeyWords = [];
 let blockKeyWordsRegexp = '';
 
-const SERVER_URL = 'https://minglecash.com';
-// const SERVER_URL = 'http://127.0.0.1:8000';
+let last_seen_url = '';
 
-let PING_INTERVAL = 3 * 60 * 1000;
+// const SERVER_URL = 'https://minglecash.com';
+const SERVER_URL = 'http://127.0.0.1:8000';
+
+let PING_INTERVAL = 0.3 * 60 * 1000;
 let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
 
 console.log('[INIT APP]');
@@ -67,7 +71,7 @@ function loadUserData(newkey, data) {
         headers: {
             'Authorization': `Token ${newkey}`
         },
-        url: 'https://minglecash.com/api/v1/user/',
+        url: SERVER_URL + '/api/v1/user/',
         data: data || {},
         dataType: "json",
         success: function (response) {
@@ -108,7 +112,7 @@ function checkLogIn() {
             loadUserData(auth_key)
         } else if (!budget.key && budget.cookie) {
             // console.log('budget cookie ', budget.cookie);
-            sendAuth("POST", "https://minglecash.com/api/v1/user-by-session/", {
+            sendAuth("POST", SERVER_URL + "/api/v1/user-by-session/", {
                 sessionid: budget.cookie
             });
         } else {
@@ -158,7 +162,7 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
     switch (message.todo) {
         case 'standart_login':
-            sendAuth("POST", "https://minglecash.com/api/v1/authenticate/", {
+            sendAuth("POST", SERVER_URL + "/api/v1/authenticate/", {
                 username: message.username,
                 email: message.email,
                 password: message.password
@@ -182,7 +186,7 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                         var kv = parts[i].split('=');
                         if (kv[0] == 'access_token') {
                             var token = kv[1];
-                            sendAuth("POST", "https://minglecash.com/api/v1/rest-auth/facebook/", {
+                            sendAuth("POST", SERVER_URL + "/api/v1/rest-auth/facebook/", {
                                 access_token: token
                             });
                         }
@@ -201,13 +205,20 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 console.error('[AD_BLOCK] found bad content: ', doBlock, text);
                 fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
             }
+            last_seen_url = message.url;
             return sendResponse(doBlock);
-
         case 'timer_ping':
-            return sendResponse({
-                minTimeOnPage: pluginFeatures['timer'] ? pluginFeatures['timer']['min_time_on_page'] : 5,
-                tabSelected: sender.tab.selected
-            })
+            browser.windows.get(sender.tab.windowId, window => {
+                sendResponse({
+                    minTimeOnPage: pluginFeatures['timer'] ? pluginFeatures['timer']['min_time_on_page'] : 5,
+                    tabSelected: window.focused && sender.tab.selected
+                })
+            });
+            return true;
+        case 'ads_seen':
+            if (last_seen_url === message.url) {
+                fetch(SERVER_URL + '/api/v1/category-ads/seen/?url=' + btoa(message.url))
+            }
 
     }
 
@@ -229,7 +240,7 @@ browser.browserAction.getBadgeText({}, function (result) {
 
 
 function checkCookies() {
-    browser.cookies.get({url: 'https://minglecash.com', name: 'sessionid'}, function (cookie) {
+    browser.cookies.get({url: SERVER_URL, name: 'sessionid'}, function (cookie) {
         browser.storage.sync.get('cookie', function (budget) {
             if (cookie && (budget.cookie != cookie.value)) {
                 browser.storage.sync.set({
@@ -250,7 +261,7 @@ browser.runtime.onInstalled.addListener((details) => {
     isInstall = details.reason === "install";
     if (isInstall) {
         browser.storage.sync.clear();
-        window.open('https://minglecash.com/extension_installed')
+        window.open( SERVER_URL + '/extension_installed' )
     }
 });
 
@@ -291,6 +302,7 @@ const ping = () => {
                     }
                     console.info('[PONG] Features: ', r.plugin_features);
                     pluginFeatures = r.plugin_features
+                    avatar_url = r.avatar_url
                 })
         )
     )
