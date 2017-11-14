@@ -74,6 +74,8 @@ browser.webNavigation.onCompleted.addListener((obj) => {
 });
 
 
+
+
 /**
  * Creates ads pop-under for created category
  */
@@ -83,10 +85,8 @@ function create_ads_tab(url) {
     let onCreated = (tab) => {
         browser.tabs.onCreated.removeListener(onCreated);
 
-        // for (let tab of tabs) {
-            browser.tabs.update(tab.id, {muted: true});
-            adcashActiveTabs.push(tab.id);
-        // }
+        browser.tabs.update(tab.id, {muted: true});
+        adcashActiveTabs.push(tab.id);
 
         isBrowserFocused((isFocused) => {
             if (!isFocused) {
@@ -103,40 +103,37 @@ function create_ads_tab(url) {
     browser.tabs.onCreated.addListener(onCreated);
 
     browser.windows.getAll(allWindows => {
+        let mainWindow = allWindows.filter(w => w.focused)[0];
 
-        let mainWindow = allWindows[0];
-        browser.windows.create({
-            // tabId: tab.id,
-            url: url,
-            focused: false,
-            height: mainWindow.height,
-            width: mainWindow.width,
-            top: mainWindow.top,
-            left: mainWindow.left
-        }, function (window) {
+        browser.tabs.getAllInWindow(mainWindow.id, tabs => {
+            let selectedTab = tabs.filter(t => t.selected)[0];
 
-            // browser.tabs.getAllInWindow(window.id, (tabs) => {
-            //     for (let tab of tabs) {
-            //         browser.tabs.update(tab.id, {muted: true});
-            //         adcashActiveTabs.push(tab.id);
-            //     }
-            //
-            //     isBrowserFocused((isFocused) => {
-            //         if (!isFocused) {
-            //             return;
-            //         }
-            //
-            //         console.log('[CREATE ADS TAB] new ', window.id);
-            //         console.log('[CREATE ADS TAB] old ' , old_window_id);
-            //         browser.windows.update(old_window_id, {focused: true});
-            //         console.log('[CREATE ADS TAB] old ', old_window_id);
-            //
-            //     });
-            // });
-        });
+            /**
+             * <-- Modify referer
+             */
+            let requestHandler = (details) => {
+                browser.webRequest.onBeforeSendHeaders.removeListener(requestHandler, {urls: [url]}, ["requestHeaders"]);
+                let headers = details.requestHeaders.filter(h => !h.name.match(/referer/i));
+                headers.push({name:"Referer",value: selectedTab.url});
 
-        browser.browserAction.setBadgeText({'text': String(count)});
-        browser.browserAction.setBadgeBackgroundColor({color: 'blue'});
+                console.log('[NEW HEADERS]', headers);
+                return {requestHeaders:headers};
+            };
+            browser.webRequest.onBeforeSendHeaders.addListener(requestHandler, {urls: [url]}, ["requestHeaders"]);
+            // --->
+
+            browser.windows.create({
+                url: url,
+                focused: false,
+                height: mainWindow.height,
+                width: mainWindow.width,
+                top: mainWindow.top,
+                left: mainWindow.left
+            }, function (window) {});
+
+            browser.browserAction.setBadgeText({'text': String(count)});
+            browser.browserAction.setBadgeBackgroundColor({color: 'blue'});
+        })
     })
 }
 

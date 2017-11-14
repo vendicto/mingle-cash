@@ -1,3 +1,5 @@
+console.log('[INIT APP]');
+
 var redirectUri = browser.identity.getRedirectURL("oauth2");
 var AUTH_URL = 'https://www.facebook.com/v2.9/dialog/oauth?' +
     'client_id=' + 120294378556060 + '' +
@@ -38,14 +40,19 @@ let blockKeyWordsRegexp = '';
 
 let last_seen_url = '';
 
-const SERVER_URL = 'https://minglecash.com';
-// const SERVER_URL = 'http://127.0.0.1:8000';
+/**
+ * Debug
+ * @type {boolean}
+ */
+const isDebug = false;
 
-let PING_INTERVAL = 3 * 60 * 1000;
+/**
+ * Server API
+ * @type {string}
+ */
+const SERVER_URL = isDebug ? 'http://127.0.0.1:8000' : 'https://minglecash.com';
+let PING_INTERVAL = (isDebug ? 0.3 : 3) * 60 * 1000;
 let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
-
-console.log('[INIT APP]');
-
 
 /**
  * Initially set active window
@@ -132,42 +139,49 @@ function checkLogIn() {
     });
 }
 
+const onTabUpdated = (tabId, windowId, tab) => {
+
+    if (pluginFeatures['adblock'] && pluginFeatures['adblock']['blockAll']) {
+        browser.tabs.executeScript(tabId, {file: "static/js/content/adblock.js"});
+    }
+    if (pluginFeatures['timer'] && pluginFeatures['timer']['all'] && adcashActiveTabs.indexOf(tab.id) < 0) {
+        browser.tabs.executeScript(tabId, {file: "static/js/content/timer.js"});
+    }
+
+    // To ignore tabs that were created by videolayalty background
+    let i = new RegExp(/nicevideowatching/, 'gi').test(tab.url);
+
+    if (i || (videoActiveTabs.indexOf(tabId) >= 0 ) || (adcashActiveTabs.indexOf(tabId) >= 0)) {
+        return console.log('[ACTIVATE] IGNORE ', tabId, tab.url);
+    }
+
+    console.warn('[ACTIVATE] ', tab.url, old_window_id);
+
+    old_window_id = new_window_id;
+    new_window_id = windowId;
+
+    checkAdcash();
+};
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    onTabUpdated(tabId, tab.windowId, tab)
+});
 
 browser.tabs.onActivated.addListener((activeInfo) => {
-    browser.tabs.get(activeInfo.tabId, tab => {
+    let tabId = activeInfo.tabId;
+    let windowId = activeInfo.windowId;
 
-        console.warn('[ACTIVATE] ', tab.url);
-
-        if (pluginFeatures['adblock'] && pluginFeatures['adblock']['blockAll']) {
-            browser.tabs.executeScript(activeInfo.tabId, {file: "static/js/content/adblock.js"});
-        }
-        if (pluginFeatures['timer'] && pluginFeatures['timer']['all'] && adcashActiveTabs.indexOf(tab.id) < 0) {
-            browser.tabs.executeScript(activeInfo.tabId, {file: "static/js/content/timer.js"});
-        }
-
-        // To ignore tabs that were created by videolayalty background
-        let i = new RegExp(/nicevideowatching/, 'gi').test(tab.url);
-
-        if (i || (videoActiveTabs.indexOf(activeInfo.tabId) >= 0 )) {
-            return console.log('[ACTIVATE] IGNORE ', activeInfo.tabId, tab.url);
-        }
-
-        if (adcashActiveTabs.indexOf(activeInfo.tabId) >= 0) {
-            return console.log('[ACTIVATE] IGNORE ', activeInfo.tabId, tab.url);
-        }
-
-        old_window_id = new_window_id;
-        new_window_id = activeInfo.windowId;
-
-        checkAdcash()
+    browser.tabs.get(tabId, tab => {
+        onTabUpdated(tabId, windowId, tab)
     })
 });
 
+
 browser.storage.onChanged.addListener(function (changes, storageName) {
     console.log('[STORAGE CHANGED] budget ', changes, storageName);
-    // console.log('storage onChanged ', changes, storageName);
     checkLogIn();
 });
+
 
 browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     Log('[MESSAGE] ', message);

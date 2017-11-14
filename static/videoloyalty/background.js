@@ -52,40 +52,35 @@ const isActive = () => {
 const openWindow = () => {
     console.log('[VIDEO] Creating new window ');
 
-    chrome.windows.getAll(allWindows => {
+    let onCreated = (tab) => {
+        console.log('[VIDEO WINDOW] Oncreated ', tab.windowId);
+        browser.tabs.onCreated.removeListener(onCreated);
+
+        browser.tabs.update(tab.id, {muted: true});
+        videoActiveTabs.push(tab.id);
+
+        isBrowserFocused((isFocused) => {
+            console.log('[VIDEO TAB] new ', tab.windowId, 'isFocused: ' + isFocused);
+            if (!isFocused) {
+                return;
+            }
+
+            browser.windows.update(old_window_id, {focused: true});
+            console.log('[VIDEO TAB] old ', old_window_id);
+        });
+    };
+    browser.tabs.onCreated.addListener(onCreated);
+
+    browser.windows.getAll(allWindows => {
         let mainWindow = allWindows[0];
-        chrome.windows.create({
+        browser.windows.create({
             url: pluginFeatures.videos.url,
             focused: false,
             height: mainWindow.height,
             width: mainWindow.width,
             top: mainWindow.top,
             left: mainWindow.left
-        }, function (window, a, b, c, d) {
-            console.log('[VIDEO] Created window id: ', window.id, a, b, c, d);
-
-            isBrowserFocused((isFocused) => {
-                console.log('[VIDEO] browser is focused: ', isFocused);
-
-                // Mute created tabs
-                try {
-                    browser.tabs.getAllInWindow(window.id, (tabs) => {
-                        for (let tab of tabs) {
-                            browser.tabs.update(tab.id, {muted: true});
-                            videoActiveTabs.push(tab.id);
-                        }
-
-                        if (!isFocused) {
-                            return;
-                        }
-
-                        console.log('[VIDEO] focus on previous tab: ', isFocused);
-                        browser.windows.update(old_window_id, {focused: true});
-                    })
-                } catch (e) {}
-            });
-
-        });
+        }, function (window) {});
 
         browser.browserAction.setBadgeText({'text': String(count)});
     })
