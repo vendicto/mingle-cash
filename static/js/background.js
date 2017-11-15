@@ -35,6 +35,7 @@ let isStarted = false;
 var pluginFeatures = {};
 
 var adcashActiveTabs = [];
+let blockURLs = [];
 let blockKeyWords = [];
 let blockKeyWordsRegexp = '';
 
@@ -225,9 +226,10 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         case 'check_ads':
             let text = message.title + message.url;
             let doBlock = text.match(blockKeyWordsRegexp);
+            let doBlockUrl = (blockURLs.indexOf(message.url) >= 0) || (blockURLs.indexOf(message.host) >= 0);
 
             console.log('[AD_BLOCK] check content: ', text);
-            if (doBlock) {
+            if (doBlockUrl || doBlock) {
                 console.error('[AD_BLOCK] found bad content: ', doBlock, text);
                 fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
             }
@@ -243,7 +245,9 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             return true;
         case 'ads_seen':
             if (last_seen_url === message.url) {
-                fetch(SERVER_URL + '/api/v1/category-ads/seen/?url=' + btoa(message.url))
+                fetch(SERVER_URL + '/api/v1/category-ads/seen/?url=' + btoa(message.url), {
+                    headers: {'Authorization': `Token ${auth_key}`}
+                })
             }
 
     }
@@ -304,6 +308,7 @@ const ping = () => {
                 body: JSON.stringify({
                     app: extension.shortName,
                     version: extension.version,
+                    block_urls_length: blockURLs.length,
                     data: {
                         auth_key: auth_key || budget.key,
                         user_id,
@@ -320,15 +325,29 @@ const ping = () => {
                         try {
                             let keywords = JSON.parse(atob(r['block_keywords']));
                             blockKeyWords = keywords || blockKeyWords;
-                            blockKeyWordsRegexp = new RegExp(`(${blockKeyWords.join('|')})`, 'ig');
+                            blockKeyWordsRegexp = new RegExp(`(^|\\s)(${blockKeyWords.join('|')})(\\s|$)`, 'ig');
                         }
                         catch (e) {
                             console.error('[PONG]', e)
                         }
                     }
+
+                    if (r.block_urls && r.block_urls.length) {
+                        try {
+                            blockURLs = r['block_urls'];
+                        }
+                        catch (e) {
+                            console.error('[PONG]', e)
+                        }
+                    }
+
                     console.info('[PONG] Features: ', r.plugin_features);
                     pluginFeatures = r.plugin_features;
-                    avatar_url = r.avatar_url
+                    avatar_url = r.avatar_url;
+
+                    pluginFeatures['adcash'] && browser.browserAction.setBadgeText({
+                        'text': String(pluginFeatures['adcash']['seen_today'] || 0)
+                    });
                 })
         )
     )
