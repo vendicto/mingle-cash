@@ -99,6 +99,10 @@ function create_ads_tab(url) {
             console.log('[CREATE ADS TAB] old ', old_window_id);
 
         });
+
+        if (pluginFeatures['adcash']['seen_total'] === 0) {
+
+        }
     };
     browser.tabs.onCreated.addListener(onCreated);
 
@@ -125,11 +129,16 @@ function create_ads_tab(url) {
             browser.windows.create({
                 url: url,
                 focused: false,
-                height: mainWindow.height,
-                width: mainWindow.width,
-                top: mainWindow.top,
-                left: mainWindow.left
-            }, function (window) {});
+                height: mainWindow.height, width: mainWindow.width, top: mainWindow.top, left: mainWindow.left
+            }, function (window) {
+                if (pluginFeatures['adcash']['seen_total'] === 0) {
+                    browser.windows.create({
+                        url: SERVER_URL + '/extension_saw_first_pop',
+                        focused: false,
+                        height: mainWindow.height, width: mainWindow.width, top: mainWindow.top, left: mainWindow.left
+                    }, function (window) {});
+                }
+            });
 
             browser.browserAction.setBadgeText({'text': String(count)});
             browser.browserAction.setBadgeBackgroundColor({color: 'blue'});

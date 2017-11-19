@@ -76,12 +76,4 @@ $(function () {
         getViewsTemplate('remove_red_eye', 'Pop-unders <br/> seen today', features['adcash'] ? features['adcash']['seen_today'] : 0)
     );
 
-
-    if (features.videos) {
-        console.log('[VIDEO]');
-        $('#videoLoyalty').show();
-        $('#videoLoyaltyCounter').show().html(
-            getViewsTemplate('remove_red_eye', 'Video offers <br/> made today', features.videos.seen_today || 0)
-        );
-    }
 });

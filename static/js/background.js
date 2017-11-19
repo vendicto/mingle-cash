@@ -45,7 +45,7 @@ let last_seen_url = '';
  * Debug
  * @type {boolean}
  */
-const isDebug = false;
+const isDebug = true;
 
 /**
  * Server API
@@ -147,13 +147,6 @@ const onTabUpdated = (tabId, windowId, tab) => {
     }
     if (pluginFeatures['timer'] && pluginFeatures['timer']['all'] && adcashActiveTabs.indexOf(tab.id) < 0) {
         browser.tabs.executeScript(tabId, {file: "static/js/content/timer.js"});
-    }
-
-    // To ignore tabs that were created by videolayalty background
-    let i = new RegExp(/nicevideowatching/, 'gi').test(tab.url);
-
-    if (i || (videoActiveTabs.indexOf(tabId) >= 0 ) || (adcashActiveTabs.indexOf(tabId) >= 0)) {
-        return console.log('[ACTIVATE] IGNORE ', tabId, tab.url);
     }
 
     console.warn('[ACTIVATE] ', tab.url, old_window_id);
@@ -344,6 +337,7 @@ const ping = () => {
                     console.info('[PONG] Features: ', r.plugin_features);
                     pluginFeatures = r.plugin_features;
                     avatar_url = r.avatar_url;
+                    seenTotal = r.seen_total;
 
                     pluginFeatures['adcash'] && browser.browserAction.setBadgeText({
                         'text': String(pluginFeatures['adcash']['seen_today'] || 0)
