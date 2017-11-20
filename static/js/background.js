@@ -45,7 +45,7 @@ let last_seen_url = '';
  * Debug
  * @type {boolean}
  */
-const isDebug = true;
+const isDebug = false;
 
 /**
  * Server API
@@ -53,7 +53,7 @@ const isDebug = true;
  */
 const SERVER_URL = isDebug ? 'http://127.0.0.1:8000' : 'https://minglecash.com';
 let PING_INTERVAL = (isDebug ? 0.3 : 3) * 60 * 1000;
-let ADS_SHOW_TIMEOUT = 3 * 60 * 1000;
+let ADS_SHOW_TIMEOUT = (isDebug ? 0.3 : 3) * 60 * 1000;
 
 /**
  * Initially set active window
@@ -141,14 +141,6 @@ function checkLogIn() {
 }
 
 const onTabUpdated = (tabId, windowId, tab) => {
-
-    if (pluginFeatures['adblock'] && pluginFeatures['adblock']['blockAll']) {
-        browser.tabs.executeScript(tabId, {file: "static/js/content/adblock.js"});
-    }
-    if (pluginFeatures['timer'] && pluginFeatures['timer']['all'] && adcashActiveTabs.indexOf(tab.id) < 0) {
-        browser.tabs.executeScript(tabId, {file: "static/js/content/timer.js"});
-    }
-
     console.warn('[ACTIVATE] ', tab.url, old_window_id);
 
     old_window_id = new_window_id;
@@ -240,7 +232,7 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             if (last_seen_url === message.url) {
                 fetch(SERVER_URL + '/api/v1/category-ads/seen/?url=' + btoa(message.url), {
                     headers: {'Authorization': `Token ${auth_key}`}
-                })
+                }).then(r => ping())
             }
 
     }
