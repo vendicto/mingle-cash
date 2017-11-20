@@ -2,7 +2,7 @@
 {
     "manifest_version": 2,
     "author": "minglecash.com",
-    "name": "Mingle Cash - Advertisement",
+    "name": "MingleCash.com",
     "version": "1.0.2",
     "icons": {
         "128": "static/img/icon128.png",

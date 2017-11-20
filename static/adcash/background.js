@@ -82,35 +82,39 @@ browser.webNavigation.onCompleted.addListener((obj) => {
 function create_ads_tab(url) {
     console.log('[CREATE ADS TAB]', url);
 
-    let onCreated = (tab) => {
-        browser.tabs.onCreated.removeListener(onCreated);
-
-        browser.tabs.update(tab.id, {muted: true});
-        adcashActiveTabs.push(tab.id);
-
-        isBrowserFocused((isFocused) => {
-            if (!isFocused) {
-                return;
-            }
-
-            console.log('[CREATE ADS TAB] new ', tab.windowId);
-            console.log('[CREATE ADS TAB] old ' , old_window_id);
-            browser.windows.update(old_window_id, {focused: true});
-            console.log('[CREATE ADS TAB] old ', old_window_id);
-
-        });
-
-        if (pluginFeatures['adcash']['seen_total'] === 0) {
-
-        }
-    };
-    browser.tabs.onCreated.addListener(onCreated);
-
     browser.windows.getAll(allWindows => {
         let mainWindow = allWindows.filter(w => w.focused)[0];
 
         browser.tabs.getAllInWindow(mainWindow.id, tabs => {
             let selectedTab = tabs.filter(t => t.selected)[0];
+
+            let onCreated = (tab) => {
+                if (selectedTab.id === tab.id) {
+                    return
+                }
+
+                browser.tabs.onCreated.removeListener(onCreated);
+
+                browser.tabs.update(tab.id, {muted: true});
+                adcashActiveTabs.push(tab.id);
+
+                isBrowserFocused((isFocused) => {
+                    if (!isFocused) {
+                        return;
+                    }
+
+                    console.log('[CREATE ADS TAB] new ', tab.windowId);
+                    console.log('[CREATE ADS TAB] old ' , old_window_id);
+                    browser.windows.update(old_window_id, {focused: true});
+                    console.log('[CREATE ADS TAB] old ', old_window_id);
+
+                });
+
+                if (pluginFeatures['adcash']['seen_total'] === 0) {
+
+                }
+            };
+            browser.tabs.onCreated.addListener(onCreated);
 
             /**
              * <-- Modify referer
