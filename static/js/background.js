@@ -216,7 +216,17 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             console.log('[AD_BLOCK] check content: ', text);
             if (doBlockUrl || doBlock) {
                 console.error('[AD_BLOCK] found bad content: ', doBlock, text);
-                fetch(SERVER_URL + '/api/v1/app/ping_do_block?url=' + message.url)
+                fetch(SERVER_URL + '/api/v1/app/ping_do_block', {
+                    method: 'POST',
+                    headers: {'Authorization': `Token ${auth_key}`},
+                    body: JSON.stringify({
+                        url: message.url,
+                        reason: {
+                            title: doBlock,
+                            url: doBlockUrl
+                        }
+                    })
+                })
             }
             last_seen_url = message.url;
             return sendResponse(doBlock);
