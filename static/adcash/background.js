@@ -10,9 +10,9 @@ browser.tabs.onRemoved.addListener(tabId => {
  * Receive adcash advertisement by category
  */
 function getAndSendUrls(){
-    console.log('[CATEGORY ADS]');
+    console.log('[CATEGORY ADS]', adcashActiveTabs.length, pluginFeatures['adcash']['max_windows']);
 
-    if (adcashActiveTabs.length > pluginFeatures['adcash']['max_windows']) {
+    if (adcashActiveTabs.length >= pluginFeatures['adcash']['max_windows']) {
         console.error('[CATEGORY ADS] MAX WINDOWS EXCEEDED');
         browser.browserAction.setBadgeText({'text': String('!')});
         browser.browserAction.setBadgeBackgroundColor({color: 'red'});

@@ -45,7 +45,7 @@ let last_seen_url = '';
  * Debug
  * @type {boolean}
  */
-const isDebug = false;
+const isDebug = true;
 
 /**
  * Server API
@@ -141,8 +141,6 @@ function checkLogIn() {
 }
 
 const onTabUpdated = (tabId, windowId, tab) => {
-    console.warn('[ACTIVATE] ', tab.url, old_window_id);
-
     old_window_id = new_window_id;
     new_window_id = windowId;
 
@@ -239,10 +237,12 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             });
             return true;
         case 'ads_seen':
-            if (last_seen_url === message.url) {
+            let activeTab = adcashActiveTabs.indexOf(sender.tab.id);
+            if (activeTab >= 0) {
                 fetch(SERVER_URL + '/api/v1/category-ads/seen/?url=' + btoa(message.url), {
                     headers: {'Authorization': `Token ${auth_key}`}
-                }).then(r => ping())
+                }).then(r => ping());
+                adcashActiveTabs.splice(activeTab, 1);
             }
 
     }
